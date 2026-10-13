@@ -6,7 +6,7 @@
 
 ## 结构
 - `Blog/`：App 本体（一个多平台 target：iOS + iPadOS + 原生 macOS，不是 Catalyst）。Xcode 16 起的同步文件夹（synchronized folder）：新建文件不用改 project.pbxproj
-- `BlogKit/`：本地 Swift 包，与界面无关的部分——接口模型、API 客户端、Markdown 解析、网址与日期规则。`cd BlogKit && xcrun swift test` 直接在 Mac 上跑，不用模拟器
+- `BlogKit/`：本地 Swift 包，与界面无关的部分——接口模型、API 客户端、Markdown 解析、网址与日期规则。`cd BlogKit && swift test` 直接在 Mac 上跑，不用模拟器
 - `BlogUITests/`：端到端（XCUITest），连线上 API，每步截图附在测试结果里
 - `Config/Info.plist`：只放构建设置表达不了的键（ATS）；其余由 `GENERATE_INFOPLIST_FILE` 生成
 - `scripts/`：图标生成、裸网址对照数据生成
@@ -14,7 +14,7 @@
 
 ## 约定
 - Xcode 27（SDK 27.x），部署目标 iOS / macOS 27.0；Swift 6 语言模式，App target 默认 MainActor 隔离（`SWIFT_DEFAULT_ACTOR_ISOLATION`）+ Approachable Concurrency
-- 命令行用 `xcrun swift`（PATH 里 swiftly 装的 6.3.1 工具链和 Xcode 27 的 SDK 不匹配，编译 manifest 就崩）
+- 命令行的 `swift` 来自 swiftly（2026-10：6.4.1）。它的版本不能低于 Xcode 自带的 Swift（Xcode 27 是 6.4）：6.3.1 配 Xcode 27 的 SDK 编译 Package.swift 就崩（`unknown argument: -target-arch-variant`）。拿不准时用 `xcrun swift`（Xcode 自带的工具链）。`swiftly use` 不加 `--global-default` 会在当前目录写 `.swift-version`
 - 依赖只有 Apple 维护的 swift-markdown；引入新依赖前先确认仍在维护
 - 模型和网站 `packages/shared` 的 zod schema 一一对应（字段名相同）。不用 enum 表示网站可能扩展的值（语言 `ContentLocale`、错误码 `APIErrorCode`）：App 装在读者手机上可能很久不更新，enum 遇到新值会让整个响应解码失败
 - 界面文案：`Blog/Resources/Localizable.xcstrings`，源语言英文，另有 zh-Hans、ja；措辞尽量和网站的字典一致。API 返回的中文 message 不给读者看，按错误原因显示本地化文案
@@ -38,6 +38,6 @@
 - 中日共用汉字：文章、标题、标签按内容的语言设 `typesettingLanguage`（网页上 `lang` 的作用）
 
 ## 常用命令
-- `cd BlogKit && xcrun swift test`：模型、解析、裸网址对照
+- `cd BlogKit && swift test`：模型、解析、裸网址对照
 - `xcodebuild -project Blog.xcodeproj -scheme Blog -destination 'platform=iOS Simulator,name=iPhone 18 Pro' test`：端到端（连线上 API）
 - macOS 的 UI 测试第一次要在系统弹窗里授权自动化；签名：在 Xcode 的 Signing & Capabilities 里选自己的 Team（工程里没写死）
