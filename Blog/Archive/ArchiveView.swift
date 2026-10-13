@@ -11,7 +11,6 @@ struct ArchiveView: View {
   var body: some View {
     content
       .navigationTitle("Archive")
-      .toolbar { ContentLanguageMenu() }
       .task(id: settings.contentLocale) { await load() }
   }
 

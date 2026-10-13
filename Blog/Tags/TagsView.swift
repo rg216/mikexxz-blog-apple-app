@@ -10,7 +10,6 @@ struct TagsView: View {
   var body: some View {
     content
       .navigationTitle("Tags")
-      .toolbar { ContentLanguageMenu() }
       .task(id: settings.contentLocale) { await load() }
   }
 

@@ -2,7 +2,7 @@ import BlogKit
 import SwiftUI
 
 enum AppTab: String, Hashable {
-  case posts, tags, archive, search
+  case posts, tags, archive, admin, search
 }
 
 /// 顶层导航：iPhone 上是底部标签栏；iPad 和 Mac 上 `.sidebarAdaptable` 变成侧边栏（iPad 上读者可以切回标签栏）。
@@ -16,7 +16,6 @@ struct RootView: View {
         RoutedStack {
           PostFeedView(filter: PostFilter())
             .navigationTitle("Posts")
-            .toolbar { ContentLanguageMenu() }
         }
       }
       Tab("Tags", systemImage: "tag", value: AppTab.tags) {
@@ -24,6 +23,10 @@ struct RootView: View {
       }
       Tab("Archive", systemImage: "archivebox", value: AppTab.archive) {
         RoutedStack { ArchiveView() }
+      }
+      // 后台：登录后管理文章、标签、评论、媒体库；不登录也能进，里面的"设置"放着文章语言
+      Tab("Admin", systemImage: "person.crop.circle", value: AppTab.admin) {
+        AdminHomeView()
       }
       Tab(value: AppTab.search, role: .search) {
         RoutedStack { SearchView() }

@@ -11,6 +11,24 @@ enum AppConfiguration {
     }
     return BlogClient.productionURL
   }
+
+  /// 网站（后台登录时打开它的授权页）。本地开发：`BLOG_SITE_URL=http://localhost:3000`
+  static var siteURL: URL {
+    if let value = ProcessInfo.processInfo.environment["BLOG_SITE_URL"], let url = URL(string: value), url.scheme != nil {
+      return url
+    }
+    return SiteLinks.siteURL
+  }
+
+  /// 只在 Debug 构建里：从环境变量注入后台 token，UI 测试连本地 API 时跳过网页登录（见 BlogUITests）。
+  /// Release 构建里这段代码不存在
+  static var injectedAdminToken: String? {
+    #if DEBUG
+      ProcessInfo.processInfo.environment["BLOG_ADMIN_TOKEN"].flatMap { $0.isEmpty ? nil : $0 }
+    #else
+      nil
+    #endif
+  }
 }
 
 extension EnvironmentValues {

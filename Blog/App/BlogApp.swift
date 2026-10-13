@@ -4,6 +4,7 @@ import SwiftUI
 @main
 struct BlogApp: App {
   @State private var settings = ReaderSettings()
+  @State private var adminSession = AdminSession()
   private let client: BlogClient
 
   init() {
@@ -17,6 +18,7 @@ struct BlogApp: App {
     WindowGroup {
       RootView()
         .environment(settings)
+        .environment(adminSession)
         .environment(\.blogClient, client)
     }
     #if os(macOS)
@@ -24,7 +26,7 @@ struct BlogApp: App {
     #endif
 
     #if os(macOS)
-      // macOS 的偏好设置放在"设置"窗口（⌘,）；iOS 上同样的选项在各个列表的工具栏里
+      // macOS 的偏好设置照平台惯例放在"设置"窗口（⌘,）；同样的选项也在"后台"标签页的"设置"里
       Settings {
         SettingsView()
           .environment(settings)

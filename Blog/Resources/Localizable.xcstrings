@@ -83,6 +83,22 @@
         }
       }
     },
+    "Admin": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后台"
+          }
+        }
+      }
+    },
     "Archive": {
       "localizations": {
         "ja": {
@@ -463,6 +479,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "服务器暂时不可用"
+          }
+        }
+      }
+    },
+    "Settings": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置"
           }
         }
       }

@@ -2,10 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- 其余键由构建设置生成（GENERATE_INFOPLIST_FILE）；这里只放构建设置表达不了的字典 -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
-		<!-- 允许明文 HTTP 连本机（BLOG_API_URL=http://localhost:8787 调试本地 API）；公网仍强制 HTTPS -->
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
