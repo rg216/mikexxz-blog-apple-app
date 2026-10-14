@@ -10,6 +10,58 @@ final class AdminUITests: XCTestCase {
     continueAfterFailure = false
   }
 
+  /// 切换到别的标签页再回来，后台还要能点：Mac 上曾经回来以后点列表没反应
+  @MainActor func testAdminSurvivesTabSwitch() throws {
+    let app = try launchSignedIn()
+    let hierarchy = XCTAttachment(string: app.debugDescription)
+    hierarchy.name = "hierarchy-home"
+    hierarchy.lifetime = .keepAlways
+    add(hierarchy)
+
+    // 在后台的某一页里切走再回来
+    press(row(app, "文章"))
+    let post = app.descendants(matching: .any).matching(identifier: "admin-post-row").firstMatch
+    XCTAssertTrue(post.waitForExistence(timeout: 10), "文章列表没有加载出来")
+    press(sidebarTab(app, "归档"))
+    sleep(2)
+    press(sidebarTab(app, "后台"))
+    sleep(2)
+    snapshot(app, "admin-switch-1-back-in-posts")
+    // 回来时应该还停在文章列表；如果被打回了目录，点"文章"要能再进去
+    if !post.exists {
+      press(row(app, "文章"))
+      sleep(2)
+      snapshot(app, "admin-switch-1b-clicked-posts-again")
+      XCTAssertTrue(post.waitForExistence(timeout: 10), "切回来以后被打回目录，再点“文章”也进不去")
+    }
+    press(post)
+    sleep(2)
+    snapshot(app, "admin-switch-2-opened-post")
+    XCTAssertTrue(app.staticTexts["编辑文章"].firstMatch.waitForExistence(timeout: 5) || app.textFields["标题"].firstMatch.exists, "切回来以后点文章没反应")
+    back(app)
+    back(app)
+
+    // 在后台目录切走再回来
+    press(sidebarTab(app, "标签"))
+    sleep(2)
+    press(sidebarTab(app, "后台"))
+    sleep(2)
+    snapshot(app, "admin-switch-3-back-home")
+    press(row(app, "标签"))
+    let tag = app.descendants(matching: .any).matching(identifier: "admin-tag-row").firstMatch
+    XCTAssertTrue(tag.waitForExistence(timeout: 10), "切回来以后点标签没反应")
+    snapshot(app, "admin-switch-4-tags")
+  }
+
+  /// 顶层的标签页：iPhone 上是标签栏按钮，Mac 上是侧边栏的一行（后台目录里也有"文章""标签"，不能混）
+  @MainActor private func sidebarTab(_ app: XCUIApplication, _ label: String) -> XCUIElement {
+    #if os(macOS)
+      return app.outlines.firstMatch.cells.containing(.staticText, identifier: label).firstMatch
+    #else
+      return app.tabBars.buttons[label].firstMatch
+    #endif
+  }
+
   @MainActor func testBrowseAdminPages() throws {
     let token = try XCTUnwrap(ProcessInfo.processInfo.environment["BLOG_ADMIN_TOKEN"].flatMap { $0.isEmpty ? nil : $0 }, "没有设置 TEST_RUNNER_BLOG_ADMIN_TOKEN")
     let app = XCUIApplication()

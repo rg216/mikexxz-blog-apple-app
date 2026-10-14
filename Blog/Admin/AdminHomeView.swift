@@ -4,8 +4,10 @@ import SwiftUI
 
 /// "后台"标签页：没登录时是登录入口和设置；登录后是各个管理页面的目录
 struct AdminHomeView: View {
+  /// 由 RootView 保管，切换标签页再回来还停在原来的页面
+  @Binding var path: [AdminRoute]
+
   @Environment(AdminSession.self) private var session
-  @State private var path: [AdminRoute] = []
 
   var body: some View {
     NavigationStack(path: $path) {
