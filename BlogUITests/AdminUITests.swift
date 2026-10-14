@@ -116,6 +116,18 @@ final class AdminUITests: XCTestCase {
     XCTAssertTrue(app.staticTexts["界面测试文章 \(slug)"].waitForNonExistence(timeout: 10), "文章没有删掉")
   }
 
+  /// 媒体库的"上传 → 从照片上传"要弹出系统的照片选择器（PhotosPicker 不能直接放在菜单里，见 MediaLibraryView）
+  @MainActor func testPhotoPickerOpens() throws {
+    let app = try launchSignedIn()
+    press(row(app, "媒体库"))
+    press(app.buttons["上传"].firstMatch)
+    press(app.buttons["从照片上传"].firstMatch)
+    sleep(3)
+    snapshot(app, "admin-photo-picker")
+    // 照片选择器在另一个进程里显示，盖住了 App 自己的界面："上传"按钮不再可点
+    XCTAssertFalse(app.buttons["上传"].firstMatch.isHittable, "照片选择器没有弹出来")
+  }
+
   @MainActor private func launchSignedIn() throws -> XCUIApplication {
     let token = try XCTUnwrap(ProcessInfo.processInfo.environment["BLOG_ADMIN_TOKEN"].flatMap { $0.isEmpty ? nil : $0 }, "没有设置 TEST_RUNNER_BLOG_ADMIN_TOKEN")
     let app = XCUIApplication()

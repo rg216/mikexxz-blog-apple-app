@@ -57,6 +57,7 @@ private struct MediaGrid: View {
   @State private var error: AdminAPIError?
   @State private var uploader = MediaUploader()
   @State private var photoItems: [PhotosPickerItem] = []
+  @State private var pickingPhotos = false
   @State private var importingFiles = false
   @State private var creatingFolder = false
   @State private var newFolderName = ""
@@ -110,6 +111,7 @@ private struct MediaGrid: View {
       guard !items.isEmpty else { return }
       Task { await uploadPhotos(items) }
     }
+    .photosPicker(isPresented: $pickingPhotos, selection: $photoItems, matching: .images, photoLibrary: .shared())
     .fileImporter(isPresented: $importingFiles, allowedContentTypes: [.image], allowsMultipleSelection: true) { result in
       if case .success(let urls) = result { Task { await uploadFiles(urls) } }
     }
@@ -123,7 +125,11 @@ private struct MediaGrid: View {
   @ToolbarContentBuilder private var toolbar: some ToolbarContent {
     ToolbarItem(placement: .primaryAction) {
       Menu {
-        PhotosPicker(selection: $photoItems, matching: .images, photoLibrary: .shared()) {
+        // 菜单里放普通按钮，选择器由页面上的 .photosPicker 弹出：PhotosPicker 本身放进 Menu 的话，
+        // 菜单一收起它就跟着消失，选择器弹不出来
+        Button {
+          pickingPhotos = true
+        } label: {
           Label { zh("从照片上传") } icon: { Image(systemName: "photo.on.rectangle") }
         }
         Button {
