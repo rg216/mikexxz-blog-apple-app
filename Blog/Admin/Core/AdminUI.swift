@@ -78,7 +78,7 @@ struct AdminLoadingView<Value, Content: View>: View {
   let load: (AdminClient) async throws(AdminAPIError) -> Value
   @ViewBuilder let content: (Value, _ reload: @escaping () async -> Void) -> Content
 
-  @Environment(\.adminClient) private var client
+  private var client: AdminClient? { session.client }
   @Environment(AdminSession.self) private var session
   @State private var state: AdminLoadState<Value> = .loading
 

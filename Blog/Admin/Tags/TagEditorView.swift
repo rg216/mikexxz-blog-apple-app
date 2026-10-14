@@ -8,7 +8,7 @@ struct TagEditorView: View {
   let allTags: [AdminTag]
   let onChange: () async -> Void
 
-  @Environment(\.adminClient) private var client
+  private var client: AdminClient? { session.client }
   @Environment(AdminSession.self) private var session
   @Environment(\.dismiss) private var dismiss
   @State private var name = ""

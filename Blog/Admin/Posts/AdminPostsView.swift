@@ -3,7 +3,7 @@ import SwiftUI
 
 /// 全部文章（含草稿），按更新时间倒序；每篇标出各语言译文的状态
 struct AdminPostsView: View {
-  @Environment(\.adminClient) private var client
+  private var client: AdminClient? { session.client }
   @Environment(AdminSession.self) private var session
   @State private var posts: [AdminPost]?
   @State private var error: AdminAPIError?

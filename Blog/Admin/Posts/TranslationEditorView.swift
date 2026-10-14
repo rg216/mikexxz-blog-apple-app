@@ -9,7 +9,7 @@ struct TranslationEditorView: View {
   let postId: Int
   let locale: ContentLocale
 
-  @Environment(\.adminClient) private var client
+  private var client: AdminClient? { session.client }
   @Environment(AdminSession.self) private var session
   @Environment(\.dismiss) private var dismiss
   @State private var post: AdminPost?

@@ -3,7 +3,7 @@ import SwiftUI
 
 /// 标签管理：新建、改名（名称 / slug / 译名）、合并、删除。编辑文章时只能从这里已有的标签里选
 struct AdminTagsView: View {
-  @Environment(\.adminClient) private var client
+  private var client: AdminClient? { session.client }
   @Environment(AdminSession.self) private var session
   @State private var tags: [AdminTag]?
   @State private var error: AdminAPIError?

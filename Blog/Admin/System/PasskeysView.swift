@@ -4,7 +4,7 @@ import SwiftUI
 /// 登录后台用的 Passkey：改名、删除。添加新的 Passkey 要在网页上做——Passkey 绑定网站的域名，
 /// App 里注册需要 Associated Domains（见网站 CLAUDE.md "安全"）
 struct PasskeysView: View {
-  @Environment(\.adminClient) private var client
+  private var client: AdminClient? { session.client }
   @Environment(AdminSession.self) private var session
   @State private var passkeys: [Passkey]?
   @State private var error: AdminAPIError?

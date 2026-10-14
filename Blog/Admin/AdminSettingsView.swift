@@ -33,7 +33,7 @@ struct AdminSettingsView: View {
 
 /// 文章翻译、标签翻译各用哪个模型。选了就保存（和网页一样）；保存失败退回原来的选择
 private struct ModelSettingsSection: View {
-  @Environment(\.adminClient) private var client
+  private var client: AdminClient? { session.client }
   @Environment(AdminSession.self) private var session
   @State private var current: SiteSettings?
   @State private var error: AdminAPIError?

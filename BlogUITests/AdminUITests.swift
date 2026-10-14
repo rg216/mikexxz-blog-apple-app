@@ -26,24 +26,23 @@ final class AdminUITests: XCTestCase {
       press(row(app, page))
       sleep(3)
       snapshot(app, "admin-\(index + 1)-\(page)")
+      // 页面打开了不够，要真的加载出数据：Mac 上曾经一直转圈（后台客户端没传进推入的页面），只截图的测试照样通过
       if page == "文章" {
         let first = app.descendants(matching: .any).matching(identifier: "admin-post-row").firstMatch
-        if first.waitForExistence(timeout: 5) {
-          press(first)
-          sleep(3)
-          snapshot(app, "admin-1b-文章编辑")
-          back(app)
-        }
+        XCTAssertTrue(first.waitForExistence(timeout: 10), "文章列表没有加载出来")
+        press(first)
+        sleep(3)
+        snapshot(app, "admin-1b-文章编辑")
+        back(app)
       }
       if page == "标签" {
         let first = app.descendants(matching: .any).matching(identifier: "admin-tag-row").firstMatch
-        if first.waitForExistence(timeout: 5) {
-          press(first)
-          sleep(2)
-          snapshot(app, "admin-2b-标签编辑")
-          press(app.buttons["取消"].firstMatch)
-          sleep(1)
-        }
+        XCTAssertTrue(first.waitForExistence(timeout: 10), "标签列表没有加载出来")
+        press(first)
+        sleep(2)
+        snapshot(app, "admin-2b-标签编辑")
+        press(app.buttons["取消"].firstMatch)
+        sleep(1)
       }
       back(app)
     }
@@ -166,7 +165,8 @@ final class AdminUITests: XCTestCase {
     #if os(iOS)
       app.navigationBars.buttons.element(boundBy: 0).tap()
     #else
-      app.typeKey("[", modifierFlags: .command)
+      // SwiftUI 的 NavigationStack 在 Mac 上不响应 ⌘[，点工具栏的返回按钮
+      app.toolbars.buttons.matching(NSPredicate(format: "label IN %@", ["返回", "Back"])).firstMatch.click()
     #endif
     sleep(1)
   }
@@ -186,7 +186,12 @@ final class AdminUITests: XCTestCase {
   }
 
   @MainActor private func snapshot(_ app: XCUIApplication, _ name: String) {
-    let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+    // Mac 上只截 App 的窗口，不截整个屏幕
+    #if os(macOS)
+      let attachment = XCTAttachment(screenshot: app.windows.firstMatch.screenshot())
+    #else
+      let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+    #endif
     attachment.name = name
     attachment.lifetime = .keepAlways
     add(attachment)

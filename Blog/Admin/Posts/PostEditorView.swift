@@ -5,7 +5,7 @@ import SwiftUI
 struct PostEditorView: View {
   let postId: Int?
 
-  @Environment(\.adminClient) private var client
+  private var client: AdminClient? { session.client }
   @Environment(AdminSession.self) private var session
   @Environment(\.dismiss) private var dismiss
   @State private var post: AdminPost?

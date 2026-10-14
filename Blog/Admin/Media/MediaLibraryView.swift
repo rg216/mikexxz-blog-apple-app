@@ -47,7 +47,7 @@ private struct MediaGrid: View {
 
   let mode: Mode
 
-  @Environment(\.adminClient) private var client
+  private var client: AdminClient? { session.client }
   @Environment(AdminSession.self) private var session
   @State private var images: [AdminImage]?
   @State private var folders: [MediaFolder] = []

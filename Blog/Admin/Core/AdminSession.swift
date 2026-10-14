@@ -10,7 +10,11 @@ import SwiftUI
   import UIKit
 #endif
 
-/// 后台的登录状态。token 在钥匙串里；session 失效（过期、在别处退出）时任何接口都会回 401，那时回到未登录
+/// 后台的登录状态。token 在钥匙串里；session 失效（过期、在别处退出）时任何接口都会回 401，那时回到未登录。
+///
+/// 各页面直接读 `session.client`，不另设一个环境值：AdminSession 从 App 的根部注入，任何页面都拿得到；
+/// 而设在后台标签页 NavigationStack 上的环境值，在 macOS 的侧边栏 TabView 里推进去的页面拿不到
+/// （iPhone 上拿得到），后台页面因此一直在转圈
 @Observable
 final class AdminSession {
   enum State {
@@ -139,9 +143,4 @@ final class AdminSession {
       UIDevice.current.model
     #endif
   }
-}
-
-extension EnvironmentValues {
-  /// 已登录时的后台客户端（登录后的页面才用得到）
-  @Entry var adminClient: AdminClient?
 }

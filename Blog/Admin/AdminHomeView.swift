@@ -13,7 +13,6 @@ struct AdminHomeView: View {
         .navigationTitle(Text("Admin"))
         .navigationDestination(for: AdminRoute.self) { $0.destination }
     }
-    .environment(\.adminClient, session.client)
     // 退出或 session 失效时回到目录，不留在需要登录的页面上
     .onChange(of: session.isSignedIn) { _, signedIn in
       if !signedIn { path = [] }
@@ -23,7 +22,7 @@ struct AdminHomeView: View {
 
 private struct AdminHomeList: View {
   @Environment(AdminSession.self) private var session
-  @Environment(\.adminClient) private var client
+  private var client: AdminClient? { session.client }
   @Environment(\.webAuthenticationSession) private var webAuthenticationSession
   @State private var signingIn = false
   @State private var signInError: String?

@@ -4,7 +4,7 @@ import SwiftUI
 /// 评论审核。规则是白名单制：白名单里的人直接显示，其他人的每条都待审核，拉黑的不能评论。
 /// 加入白名单会通过他所有待审核的评论，拉黑会拒绝它们
 struct AdminCommentsView: View {
-  @Environment(\.adminClient) private var client
+  private var client: AdminClient? { session.client }
   @Environment(AdminSession.self) private var session
   @State private var status = CommentStatus.pending
   @State private var comments: [AdminComment]?
@@ -175,7 +175,7 @@ struct TrustBadge: View {
 
 /// 评论者：调整信任等级，或按 GitHub 用户名预先加入白名单（对方还没来评论过也可以）
 struct CommentersView: View {
-  @Environment(\.adminClient) private var client
+  private var client: AdminClient? { session.client }
   @Environment(AdminSession.self) private var session
   @State private var commenters: [AdminCommenter]?
   @State private var error: AdminAPIError?

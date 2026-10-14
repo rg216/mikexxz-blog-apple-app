@@ -4,7 +4,7 @@ import SwiftUI
 /// 系统状态：各项依赖配好了没有、能不能用，定时任务最近一次的结果。只报告状态，不返回任何配置值。
 /// 不自动刷新：每次检查都会连各个服务（包括 Anthropic）
 struct SystemStatusView: View {
-  @Environment(\.adminClient) private var client
+  private var client: AdminClient? { session.client }
   @Environment(AdminSession.self) private var session
   @State private var status: SystemStatus?
   @State private var error: AdminAPIError?
