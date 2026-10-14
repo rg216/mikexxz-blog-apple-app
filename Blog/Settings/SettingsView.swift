@@ -13,8 +13,9 @@ struct SettingsView: View {
           Text(locale.endonym).tag(locale)
         }
       }
+      .rowFont()
       Text("Posts without a translation in this language are hidden from lists. Opening one shows the original.")
-        .font(.footnote)
+        .font(.app(.footnote))
         .foregroundStyle(.secondary)
     }
     .formStyle(.grouped)

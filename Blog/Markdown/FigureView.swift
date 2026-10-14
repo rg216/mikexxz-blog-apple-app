@@ -22,7 +22,7 @@ struct FigureView: View {
         .accessibilityHidden(image.alt.isEmpty)
       if let caption = image.title, !caption.isEmpty {
         Text(caption)
-          .font(.footnote)
+          .font(.app(.footnote))
           .foregroundStyle(.secondary)
           .multilineTextAlignment(.center)
           .padding(.horizontal, ReadingLayout.readingMargin)

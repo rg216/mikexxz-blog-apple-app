@@ -81,7 +81,7 @@ private struct MediaGrid: View {
         }
         ForEach(uploader.failures, id: \.self) { failure in
           Label { zh(failure) } icon: { Image(systemName: "xmark.octagon.fill").foregroundStyle(.red) }
-            .font(.footnote)
+            .font(.app(.footnote))
         }
         if let images {
           if images.isEmpty {
@@ -174,7 +174,7 @@ private struct MediaGrid: View {
       .overlay(alignment: .bottomTrailing) {
         if image.usage == 0 {
           zh("未引用")
-            .font(.caption2.weight(.semibold))
+            .font(.app(.caption2).weight(.semibold))
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(.ultraThinMaterial, in: .capsule)

@@ -116,13 +116,13 @@ struct SearchHitRow: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
       Text(hit.title.attributed(highlight: Self.highlight))
-        .font(.headline)
+        .font(.app(.headline))
       Text(hit.snippet.attributed(highlight: Self.highlight))
-        .font(.subheadline)
+        .font(.app(.subheadline))
         .foregroundStyle(.secondary)
         .lineLimit(4)
       Text(hit.publishedAt, format: SiteCalendar.dateStyle(locale: locale))
-        .font(.footnote.weight(.semibold))
+        .font(.app(.footnote).weight(.semibold))
         .foregroundStyle(.secondary)
     }
     .typesettingLanguage(hit.locale.language)

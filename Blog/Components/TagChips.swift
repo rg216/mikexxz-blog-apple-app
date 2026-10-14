@@ -13,7 +13,7 @@ struct TagChips: View {
         NavigationLink(value: Route.tag(slug: tag.slug, name: tag.name)) {
           Text(verbatim: "#" + tag.name)
             .typesettingLanguage(tag.locale.language)
-            .font(.subheadline.weight(.semibold))
+            .font(.app(.subheadline).weight(.semibold))
             .padding(.horizontal, 12)
             .frame(minHeight: 32)
         }

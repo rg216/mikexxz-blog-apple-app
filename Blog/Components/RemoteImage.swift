@@ -23,7 +23,7 @@ struct RemoteImage: View {
               image.resizable().aspectRatio(contentMode: contentMode)
             case .failure:
               Image(systemName: "photo")
-                .font(.title2)
+                .font(.app(.title2))
                 .foregroundStyle(.tertiary)
             default:
               Color.clear

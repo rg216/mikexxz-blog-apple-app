@@ -63,6 +63,7 @@ struct ImageDetailView: View {
           .frame(maxWidth: .infinity)
       }
       Section {
+        Group {
         TextField(text: $filename) { zh("文件名") }
         TextField(text: $description, axis: .vertical) { zh("描述（替代文本）") }
           .lineLimit(2...5)
@@ -72,10 +73,13 @@ struct ImageDetailView: View {
           zh(saving ? "正在保存…" : "保存")
         }
         .disabled(saving || (filename == image.filename && description == image.description))
+        }
+        .rowFont()
       } footer: {
-        zh("描述是插入文章时默认的替代文本，读屏软件会读出它；也用作头图的 alt。")
+        zh("描述是插入文章时默认的替代文本，读屏软件会读出它；也用作头图的 alt。").footerFont()
       }
       Section {
+        Group {
         Picker(selection: Binding(get: { image.folderId }, set: { id in Task { await move(to: id) } })) {
           zh("不归入文件夹").tag(Int?.none)
           ForEach(folders) { folder in
@@ -91,8 +95,11 @@ struct ImageDetailView: View {
           LabeledContent { zh(image.variants.map { "\($0)w" }.joined(separator: "、")) } label: { zh("尺寸版本") }
         }
         LabeledContent { zh(image.createdAt.adminFormatted) } label: { zh("上传于") }
+        }
+        .rowFont()
       }
       Section {
+        Group {
         Button {
           copy(image.url.absoluteString, "已复制地址")
         } label: {
@@ -103,13 +110,15 @@ struct ImageDetailView: View {
         } label: {
           Label { zh("复制 Markdown") } icon: { Image(systemName: "doc.on.doc") }
         }
+        }
+        .rowFont()
         if let copied {
-          zh(copied).font(.footnote).foregroundStyle(.secondary)
+          zh(copied).font(.app(.footnote)).foregroundStyle(.secondary)
         }
       }
       Section {
         if detail.posts.isEmpty {
-          zh("没有文章引用它。").foregroundStyle(.secondary)
+          zh("没有文章引用它。").foregroundStyle(.secondary).rowFont()
         }
         ForEach(detail.posts) { post in
           NavigationLink(value: AdminRoute.post(id: post.id)) {
@@ -119,6 +128,7 @@ struct ImageDetailView: View {
               StatusBadge(text: post.status.label, color: post.status.color)
             }
           }
+          .rowFont()
         }
       } header: {
         zh("被引用")
@@ -129,6 +139,7 @@ struct ImageDetailView: View {
         } label: {
           zh("删除图片")
         }
+        .rowFont()
       }
     }
     .formStyle(.grouped)

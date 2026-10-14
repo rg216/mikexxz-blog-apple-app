@@ -19,21 +19,23 @@ struct SystemStatusView: View {
         Section {
           let overall = StatusState.worst(status.checks.map(\.state) + status.jobs.map(\.state))
           Label { zh(overall.summary) } icon: { overall.icon }
-            .font(.headline)
+            .font(.app(.headline))
           LabeledContent { zh(status.checkedAt.adminFormatted) } label: { zh("检查于") }
+            .rowFont()
           LabeledContent { zh(status.version.map { String($0.prefix(7)) } ?? "本地") } label: { zh("API 版本") }
+            .rowFont()
         }
         Section {
           ForEach(status.checks) { check in
             HStack(alignment: .firstTextBaseline, spacing: 10) {
               check.state.icon
               VStack(alignment: .leading, spacing: 2) {
-                zh(Self.checkName(check.id)).font(.subheadline.weight(.semibold))
-                zh(check.summary).font(.footnote).foregroundStyle(.secondary)
+                zh(Self.checkName(check.id)).font(.app(.subheadline).weight(.semibold))
+                zh(check.summary).font(.app(.footnote)).foregroundStyle(.secondary)
               }
               Spacer()
               if let latency = check.latencyMs {
-                zh("\(Int(latency.rounded())) ms").font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                zh("\(Int(latency.rounded())) ms").font(.app(.caption).monospacedDigit()).foregroundStyle(.secondary)
               }
             }
           }
@@ -45,11 +47,11 @@ struct SystemStatusView: View {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
               job.state.icon
               VStack(alignment: .leading, spacing: 2) {
-                zh(Self.jobName(job.name)).font(.subheadline.weight(.semibold))
+                zh(Self.jobName(job.name)).font(.app(.subheadline).weight(.semibold))
                 zh(job.lastSuccessAt.map { "最近一次成功：\($0.adminFormatted)" } ?? "从未运行")
-                  .font(.footnote).foregroundStyle(.secondary)
+                  .font(.app(.footnote)).foregroundStyle(.secondary)
                 if let lastRun = job.lastRunAt, lastRun != job.lastSuccessAt, let detail = job.detail {
-                  zh("最近一次（\(lastRun.adminFormatted)）失败：\(detail)").font(.footnote).foregroundStyle(.red)
+                  zh("最近一次（\(lastRun.adminFormatted)）失败：\(detail)").font(.app(.footnote)).foregroundStyle(.red)
                 }
               }
             }

@@ -12,9 +12,9 @@ struct PostRow: View {
     HStack(alignment: .top, spacing: 16) {
       VStack(alignment: .leading, spacing: 6) {
         Text(post.title)
-          .font(.headline)
+          .font(.app(.headline))
         Text(post.excerpt)
-          .font(.subheadline)
+          .font(.app(.subheadline))
           .foregroundStyle(.secondary)
           .lineLimit(3)
         meta
@@ -46,7 +46,7 @@ struct PostRow: View {
         Text("\(date) · \(tags)")
       }
     }
-    .font(.footnote.weight(.semibold))
+    .font(.app(.footnote).weight(.semibold))
     .foregroundStyle(.secondary)
     .lineLimit(2)
   }

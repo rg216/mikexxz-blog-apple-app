@@ -50,7 +50,7 @@ struct AdminPostsView: View {
           AdminErrorBanner(error: error)
         }
         if posts.isEmpty {
-          zh("还没有文章。").foregroundStyle(.secondary)
+          zh("还没有文章。").foregroundStyle(.secondary).rowFont()
         }
         ForEach(visible) { post in
           NavigationLink(value: AdminRoute.post(id: post.id)) {
@@ -89,11 +89,11 @@ private struct AdminPostRow: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
       zh(post.title)
-        .font(.headline)
+        .font(.app(.headline))
       HStack(spacing: 12) {
         StatusBadge(text: post.status.label, color: post.status.color)
         zh("更新于 \(post.updatedAt.adminFormatted)")
-          .font(.caption)
+          .font(.app(.caption))
           .foregroundStyle(.secondary)
       }
       TranslationBadges(post: post)
@@ -112,7 +112,7 @@ struct TranslationBadges: View {
         badge(locale)
       }
     }
-    .font(.caption2.weight(.semibold))
+    .font(.app(.caption2).weight(.semibold))
   }
 
   @ViewBuilder private func badge(_ locale: ContentLocale) -> some View {

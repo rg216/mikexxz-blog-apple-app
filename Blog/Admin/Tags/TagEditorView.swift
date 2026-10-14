@@ -44,11 +44,11 @@ struct TagEditorView: View {
             } icon: {
               Image(systemName: "exclamationmark.triangle")
             }
-            .font(.footnote)
+            .font(.app(.footnote))
             .foregroundStyle(.orange)
           }
         } footer: {
-          zh("slug 用在标签页的网址里：小写字母、数字，用单个连字符分隔。")
+          zh("slug 用在标签页的网址里：小写字母、数字，用单个连字符分隔。").footerFont()
         }
         Section {
           ForEach(AdminTag.translationLocales) { locale in
@@ -70,15 +70,16 @@ struct TagEditorView: View {
             }
           }
           .disabled(translating || name.trimmingCharacters(in: .whitespaces).isEmpty || tagModel == nil)
+          .rowFont()
           if let translateNote {
             zh(translateNote)
-              .font(.footnote)
+              .font(.app(.footnote))
               .foregroundStyle(.secondary)
           }
         } header: {
           zh("译名")
         } footer: {
-          zh("翻译结果只填进输入框，看过、保存后才生效。站上已有的译名会作为参考，风格保持一致。")
+          zh("翻译结果只填进输入框，看过、保存后才生效。站上已有的译名会作为参考，风格保持一致。").footerFont()
         }
         if let original {
           mergeSection(original)
@@ -133,30 +134,32 @@ struct TagEditorView: View {
       } label: {
         zh("合并到")
       }
+      .rowFont()
       Button(role: .destructive) {
         confirmingMerge = true
       } label: {
         zh("合并")
       }
       .disabled(mergeInto == nil || isDirty)
+      .rowFont()
     } header: {
       zh("合并")
     } footer: {
-      zh(isDirty ? "先保存或放弃当前的修改再合并。" : "意思重复的标签合成一个：用到这个标签的文章改用选中的标签（同时有两个的只保留后者），然后删除这个标签。")
+      zh(isDirty ? "先保存或放弃当前的修改再合并。" : "意思重复的标签合成一个：用到这个标签的文章改用选中的标签（同时有两个的只保留后者），然后删除这个标签。").footerFont()
     }
   }
 
   private func field(_ title: String, text: Binding<String>, issue: String, monospaced: Bool = false) -> some View {
     VStack(alignment: .leading, spacing: 4) {
       TextField(text: text) { zh(title) }
-        .font(monospaced ? .body.monospaced() : .body)
+        .font(.app(.body, design: monospaced ? .monospaced : nil))
         .autocorrectionDisabled()
         #if os(iOS)
           .textInputAutocapitalization(.never)
         #endif
       if let message = error?.issue(for: issue) {
         zh(message)
-          .font(.footnote)
+          .font(.app(.footnote))
           .foregroundStyle(.red)
       }
     }

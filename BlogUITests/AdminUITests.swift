@@ -76,6 +76,31 @@ final class AdminUITests: XCTestCase {
     snapshot(app, "switch-admin-restored")
   }
 
+  /// Mac 上的字号（不截图，读文字控件的高度）：列表行、表单里的文字要用放大后的字号（Font.app、rowFont、
+  /// AppLabeledContentStyle）。正文 13pt（系统默认）的文字高约 16，15pt 约 18–19；脚注 11pt 约 14，12pt 约 15。
+  /// iOS 上不检查：那里的字号跟随 Dynamic Type，没有固定值
+  @MainActor func testTextSizes() throws {
+    #if !os(macOS)
+      throw XCTSkip("只在 Mac 上检查字号")
+    #else
+      let app = try launchSignedIn()
+      func height(_ label: String) -> CGFloat {
+        let element = app.staticTexts[label].firstMatch
+        XCTAssertTrue(element.waitForExistence(timeout: 10), "找不到“\(label)”")
+        return element.frame.height
+      }
+      XCTAssertGreaterThanOrEqual(height("文章"), 18, "列表行（导航）")
+      XCTAssertGreaterThanOrEqual(height("已登录"), 18, "列表行（LabeledContent）")
+      XCTAssertGreaterThanOrEqual(height("闲置 7 天或登录满 30 天后需要重新登录。"), 15, "Section 页脚")
+      press(row(app, "文章"))
+      let post = app.descendants(matching: .any).matching(identifier: "admin-post-row").firstMatch
+      XCTAssertTrue(post.waitForExistence(timeout: 10))
+      press(post)
+      XCTAssertGreaterThanOrEqual(height("状态"), 18, "表单里的 Picker")
+      XCTAssertGreaterThanOrEqual(height("首次发布"), 18, "表单里的 LabeledContent")
+    #endif
+  }
+
   /// 顶层的标签页：iPhone 上是标签栏按钮，Mac 上是侧边栏的一行（后台目录里也有"文章""标签"，不能混）
   @MainActor private func sidebarTab(_ app: XCUIApplication, _ label: String) -> XCUIElement {
     #if os(macOS)
@@ -88,7 +113,7 @@ final class AdminUITests: XCTestCase {
   @MainActor func testBrowseAdminPages() throws {
     let token = try XCTUnwrap(ProcessInfo.processInfo.environment["BLOG_ADMIN_TOKEN"].flatMap { $0.isEmpty ? nil : $0 }, "没有设置 TEST_RUNNER_BLOG_ADMIN_TOKEN")
     let app = XCUIApplication()
-    app.launchArguments += ["-AppleLanguages", "(zh-Hans)", "-contentLocale", "zh"]
+    app.launchArguments += ["-AppleLanguages", "(zh-Hans)", "-contentLocale", "zh", "-ApplePersistenceIgnoreState", "YES"]
     app.launchEnvironment["BLOG_API_URL"] = ProcessInfo.processInfo.environment["BLOG_API_URL"] ?? "http://localhost:8787"
     app.launchEnvironment["BLOG_ADMIN_TOKEN"] = token
     app.launch()
@@ -207,7 +232,7 @@ final class AdminUITests: XCTestCase {
   @MainActor private func launchSignedIn() throws -> XCUIApplication {
     let token = try XCTUnwrap(ProcessInfo.processInfo.environment["BLOG_ADMIN_TOKEN"].flatMap { $0.isEmpty ? nil : $0 }, "没有设置 TEST_RUNNER_BLOG_ADMIN_TOKEN")
     let app = XCUIApplication()
-    app.launchArguments += ["-AppleLanguages", "(zh-Hans)", "-contentLocale", "zh"]
+    app.launchArguments += ["-AppleLanguages", "(zh-Hans)", "-contentLocale", "zh", "-ApplePersistenceIgnoreState", "YES"]
     app.launchEnvironment["BLOG_API_URL"] = ProcessInfo.processInfo.environment["BLOG_API_URL"] ?? "http://localhost:8787"
     app.launchEnvironment["BLOG_ADMIN_TOKEN"] = token
     app.launch()

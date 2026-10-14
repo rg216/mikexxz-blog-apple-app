@@ -33,6 +33,7 @@ struct TagsView: View {
               .typesettingLanguage(tag.locale.language)
           }
         }
+        .rowFont()
       }
       .refreshable { await load() }
     }

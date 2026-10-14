@@ -50,7 +50,7 @@ struct AdminTagsView: View {
           AdminErrorBanner(error: error)
         }
         if tags.isEmpty {
-          zh("还没有标签。").foregroundStyle(.secondary)
+          zh("还没有标签。").foregroundStyle(.secondary).rowFont()
         }
         ForEach(tags) { tag in
           Button {
@@ -123,9 +123,9 @@ private struct AdminTagRow: View {
     HStack(alignment: .firstTextBaseline) {
       VStack(alignment: .leading, spacing: 4) {
         zh(tag.name)
-          .font(.headline)
+          .font(.app(.headline))
         zh("#\(tag.slug)")
-          .font(.subheadline.monospaced())
+          .font(.app(.subheadline).monospaced())
           .foregroundStyle(.secondary)
         if !tag.missingTranslations.isEmpty {
           Label {
@@ -133,7 +133,7 @@ private struct AdminTagRow: View {
           } icon: {
             Image(systemName: "exclamationmark.circle")
           }
-          .font(.footnote.weight(.semibold))
+          .font(.app(.footnote).weight(.semibold))
           .foregroundStyle(.orange)
         }
       }
@@ -143,11 +143,11 @@ private struct AdminTagRow: View {
           .monospacedDigit()
         if tag.postCount > tag.publishedCount {
           zh("另有 \(tag.postCount - tag.publishedCount) 篇草稿")
-            .font(.caption)
+            .font(.app(.caption))
             .foregroundStyle(.secondary)
         }
       }
-      .font(.subheadline)
+      .font(.app(.subheadline))
     }
     .padding(.vertical, 4)
     .contentShape(.rect)

@@ -20,6 +20,11 @@ struct BlogApp: App {
         .environment(settings)
         .environment(adminSession)
         .environment(\.blogClient, client)
+        #if os(macOS)
+          // 没有指定样式的文字（列表行、表单标签）默认也用放大后的正文字号，见 Font.app
+          .font(.app(.body))
+          .labeledContentStyle(AppLabeledContentStyle())
+        #endif
     }
     #if os(macOS)
       .defaultSize(width: 1100, height: 800)
@@ -30,6 +35,7 @@ struct BlogApp: App {
       Settings {
         SettingsView()
           .environment(settings)
+          .font(.app(.body))
       }
     #endif
   }

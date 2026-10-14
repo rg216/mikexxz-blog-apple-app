@@ -58,7 +58,7 @@ struct AdminErrorBanner: View {
         zh(error.message)
         ForEach(error.issues, id: \.self) { issue in
           zh("\(issue.path)：\(issue.message)")
-            .font(.footnote)
+            .font(.app(.footnote))
             .foregroundStyle(.secondary)
         }
       }
@@ -67,7 +67,7 @@ struct AdminErrorBanner: View {
         Button(action: retry) { zh("重试") }
       }
     }
-    .font(.subheadline)
+    .font(.app(.subheadline))
     .padding(12)
     .background(.red.opacity(0.08), in: .rect(cornerRadius: 12, style: .continuous))
   }
@@ -134,7 +134,7 @@ struct StatusBadge: View {
         .accessibilityHidden(true)
       zh(text)
     }
-    .font(.caption.weight(.semibold))
+    .font(.app(.caption).weight(.semibold))
     .foregroundStyle(.secondary)
   }
 }

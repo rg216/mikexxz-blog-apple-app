@@ -19,6 +19,7 @@
 - 模型和网站 `packages/shared` 的 zod schema 一一对应（字段名相同）。不用 enum 表示网站可能扩展的值（语言 `ContentLocale`、错误码 `APIErrorCode`）：App 装在读者手机上可能很久不更新，enum 遇到新值会让整个响应解码失败
 - 界面文案：`Blog/Resources/Localizable.xcstrings`，源语言英文，另有 zh-Hans、ja；措辞尽量和网站的字典一致。API 返回的中文 message 不给读者看，按错误原因显示本地化文案
 - 设计：系统文本样式（Dynamic Type）、语义色、SF Symbols（原生 App 可以用；网站不行）、`.continuous` 圆角；不自定义 accent color（macOS 上尊重用户选的强调色）。版面宽度沿用网站：正文 680、出血图片 864
+- 字号：界面文字一律 `.font(.app(.headline))`，不直接写 `.headline`。iOS 上就是系统样式；macOS 的系统样式太小（正文 13pt）又不认 `.dynamicTypeSize`，`Font.app` 给每个样式一个固定字号（约 macOS 默认 + 2pt）。macOS 的 List / Form 行不继承外面设的字体，没有指定样式的行要加 `.rowFont()`，页脚加 `.footerFont()`；LabeledContent 由根部的 `AppLabeledContentStyle` 管。`AdminUITests.testTextSizes` 在 Mac 上量文字高度检查（2026-10 实测）
 - App 图标不能用 SF Symbols 或 SF 字体（许可证不允许）
 - 工具栏按钮的标签里不要放转圈的 `ProgressView`（"保存中"换成文字）：iOS 27 上它移除之后动画还在跑，App 一直不"空闲"——耗电，UI 测试也会在每一步干等 15 分钟（2026-10 实测）
 

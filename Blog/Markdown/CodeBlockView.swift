@@ -9,7 +9,7 @@ struct CodeBlockView: View {
     VStack(alignment: .leading, spacing: 0) {
       if let language {
         Text(verbatim: language)
-          .font(.caption.weight(.semibold))
+          .font(.app(.caption).weight(.semibold))
           .foregroundStyle(.secondary)
           .padding([.top, .horizontal], 12)
       }

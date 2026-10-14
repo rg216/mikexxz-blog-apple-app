@@ -17,10 +17,11 @@ struct AdminSettingsView: View {
         }
         .pickerStyle(.inline)
         .labelsHidden()
+        .rowFont()
       } header: {
         Text("Article Language")
       } footer: {
-        Text("Posts without a translation in this language are hidden from lists. Opening one shows the original.")
+        Text("Posts without a translation in this language are hidden from lists. Opening one shows the original.").footerFont()
       }
       if session.isSignedIn {
         ModelSettingsSection()
@@ -42,7 +43,9 @@ private struct ModelSettingsSection: View {
     Section {
       if let current {
         picker("文章翻译", value: current.translationModel) { await save(["translationModel": $0]) }
+          .rowFont()
         picker("标签翻译", value: current.tagTranslationModel) { await save(["tagTranslationModel": $0]) }
+          .rowFont()
       } else if error == nil {
         ProgressView()
       }
@@ -52,7 +55,7 @@ private struct ModelSettingsSection: View {
     } header: {
       zh("翻译模型")
     } footer: {
-      zh("生成译文时用的 Claude 模型。价格是每百万 token 的输入 / 输出（美元）。正在生成的译文不受影响：编辑器在开始时就定下了模型。")
+      zh("生成译文时用的 Claude 模型。价格是每百万 token 的输入 / 输出（美元）。正在生成的译文不受影响：编辑器在开始时就定下了模型。").footerFont()
     }
     .task { await load() }
   }
@@ -63,7 +66,7 @@ private struct ModelSettingsSection: View {
         VStack(alignment: .leading) {
           zh("\(model.name) · $\(model.inputPrice.formatted()) / $\(model.outputPrice.formatted())")
           zh(model.summary)
-            .font(.caption)
+            .font(.app(.caption))
             .foregroundStyle(.secondary)
         }
         .tag(model.id)

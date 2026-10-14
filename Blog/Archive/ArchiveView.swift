@@ -37,6 +37,7 @@ struct ArchiveView: View {
                     .typesettingLanguage(item.locale.language)
                 }
               }
+              .rowFont()
             }
           } header: {
             Text(month.month.firstDay, format: SiteCalendar.monthStyle(locale: locale))

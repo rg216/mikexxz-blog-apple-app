@@ -21,12 +21,13 @@ struct AdminCommentsView: View {
       }
       .pickerStyle(.segmented)
       .listRowSeparator(.hidden)
+      .rowFont()
       if let error {
         AdminErrorBanner(error: error) { Task { await load() } }
       }
       if let comments {
         if comments.isEmpty {
-          zh(status == .pending ? "没有待审核的评论。" : "没有评论。").foregroundStyle(.secondary)
+          zh(status == .pending ? "没有待审核的评论。" : "没有评论。").foregroundStyle(.secondary).rowFont()
         }
         ForEach(comments) { comment in
           AdminCommentRow(comment: comment)
@@ -137,16 +138,16 @@ private struct AdminCommentRow: View {
       .accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 6) {
         HStack(spacing: 6) {
-          zh(comment.author.name ?? comment.author.login).font(.subheadline.weight(.semibold))
-          zh("@\(comment.author.login)").font(.footnote).foregroundStyle(.secondary)
+          zh(comment.author.name ?? comment.author.login).font(.app(.subheadline).weight(.semibold))
+          zh("@\(comment.author.login)").font(.app(.footnote)).foregroundStyle(.secondary)
           TrustBadge(trust: comment.author.trust)
         }
         zh("《\(comment.post.title)》 · \(comment.createdAt.adminFormatted)")
-          .font(.caption)
+          .font(.app(.caption))
           .foregroundStyle(.secondary)
         if let parent = comment.parent {
           zh("回复 @\(parent.login)：\(parent.excerpt)")
-            .font(.caption)
+            .font(.app(.caption))
             .foregroundStyle(.secondary)
             .lineLimit(2)
             .padding(6)
@@ -202,13 +203,14 @@ struct CommentersView: View {
           }
           .disabled(adding || login.trimmingCharacters(in: .whitespaces).isEmpty)
         }
+        .rowFont()
       } footer: {
-        zh("白名单里的人发评论直接显示，不用审核。")
+        zh("白名单里的人发评论直接显示，不用审核。").footerFont()
       }
       Section {
         if let commenters {
           if commenters.isEmpty {
-            zh("还没有人评论过。").foregroundStyle(.secondary)
+            zh("还没有人评论过。").foregroundStyle(.secondary).rowFont()
           }
           ForEach(commenters) { commenter in
             HStack(spacing: 12) {
@@ -222,7 +224,7 @@ struct CommentersView: View {
               .accessibilityHidden(true)
               VStack(alignment: .leading) {
                 zh(commenter.name ?? commenter.login)
-                zh("@\(commenter.login)").font(.footnote).foregroundStyle(.secondary)
+                zh("@\(commenter.login)").font(.app(.footnote)).foregroundStyle(.secondary)
               }
               Spacer()
               Picker(selection: Binding(get: { commenter.trust }, set: { trust in Task { await setTrust(commenter, trust) } })) {
@@ -235,6 +237,7 @@ struct CommentersView: View {
               .labelsHidden()
               .fixedSize()
             }
+            .rowFont()
           }
         } else {
           ProgressView().frame(maxWidth: .infinity)

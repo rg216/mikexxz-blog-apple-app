@@ -65,7 +65,7 @@ struct ArticleView: View {
             .accessibilityLabel(Text("\(views) views"))
         }
       }
-      .font(.subheadline.weight(.semibold))
+      .font(.app(.subheadline).weight(.semibold))
       .foregroundStyle(.secondary)
     }
   }

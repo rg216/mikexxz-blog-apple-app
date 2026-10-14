@@ -41,6 +41,7 @@ private struct AdminHomeList: View {
         NavigationLink(value: AdminRoute.settings) {
           Label("Settings", systemImage: "gearshape")
         }
+        .rowFont()
       }
     }
     .task(id: session.isSignedIn) {
@@ -54,18 +55,18 @@ private struct AdminHomeList: View {
     Section {
       VStack(alignment: .leading, spacing: 8) {
         zh("登录后台")
-          .font(.headline)
+          .font(.app(.headline))
         zh("在网页上用 Passkey 登录并允许这台设备。登录后可以管理文章、译文、标签、评论和媒体库。")
-          .font(.subheadline)
+          .font(.app(.subheadline))
           .foregroundStyle(.secondary)
         if session.expired {
           zh("登录已过期，请重新登录。")
-            .font(.subheadline)
+            .font(.app(.subheadline))
             .foregroundStyle(.orange)
         }
         if let signInError {
           zh(signInError)
-            .font(.subheadline)
+            .font(.app(.subheadline))
             .foregroundStyle(.red)
         }
       }
@@ -82,6 +83,7 @@ private struct AdminHomeList: View {
         }
       }
       .disabled(signingIn)
+      .rowFont()
     }
   }
 
@@ -90,9 +92,11 @@ private struct AdminHomeList: View {
       NavigationLink(value: AdminRoute.posts) {
         Label { zh("文章") } icon: { Image(systemName: "doc.text") }
       }
+      .rowFont()
       NavigationLink(value: AdminRoute.tags) {
         Label { zh("标签") } icon: { Image(systemName: "tag") }
       }
+      .rowFont()
       NavigationLink(value: AdminRoute.comments) {
         LabeledContent {
           if let pendingComments, pendingComments > 0 {
@@ -103,9 +107,11 @@ private struct AdminHomeList: View {
           Label { zh("评论") } icon: { Image(systemName: "bubble.left.and.bubble.right") }
         }
       }
+      .rowFont()
       NavigationLink(value: AdminRoute.media) {
         Label { zh("媒体库") } icon: { Image(systemName: "photo.on.rectangle") }
       }
+      .rowFont()
     } header: {
       zh("内容")
     }
@@ -113,9 +119,11 @@ private struct AdminHomeList: View {
       NavigationLink(value: AdminRoute.status) {
         Label { zh("系统状态") } icon: { Image(systemName: "waveform.path.ecg") }
       }
+      .rowFont()
       NavigationLink(value: AdminRoute.passkeys) {
         Label { zh("Passkey") } icon: { Image(systemName: "person.badge.key") }
       }
+      .rowFont()
     } header: {
       zh("系统")
     }
@@ -127,11 +135,13 @@ private struct AdminHomeList: View {
         } label: {
           zh("已登录")
         }
+        .rowFont()
         LabeledContent {
           zh(info.expiresAt.adminFormatted)
         } label: {
           zh("最晚到期")
         }
+        .rowFont()
       case .unverified(let error):
         AdminErrorBanner(error: error) { Task { await session.verify() } }
       default:
@@ -142,10 +152,11 @@ private struct AdminHomeList: View {
       } label: {
         zh("退出登录")
       }
+      .rowFont()
     } header: {
       zh("账户")
     } footer: {
-      zh("闲置 7 天或登录满 30 天后需要重新登录。")
+      zh("闲置 7 天或登录满 30 天后需要重新登录。").footerFont()
     }
   }
 

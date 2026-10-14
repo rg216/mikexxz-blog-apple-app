@@ -20,11 +20,11 @@ struct PasskeysView: View {
       if let passkeys {
         ForEach(passkeys) { passkey in
           VStack(alignment: .leading, spacing: 4) {
-            zh(passkey.name).font(.headline)
+            zh(passkey.name).font(.app(.headline))
             zh(passkey.deviceType == "multiDevice" ? "可同步（如 iCloud 钥匙串）" : "绑定单台设备（如硬件密钥）")
-              .font(.footnote).foregroundStyle(.secondary)
+              .font(.app(.footnote)).foregroundStyle(.secondary)
             zh("添加于 \(passkey.createdAt.adminFormatted)" + (passkey.lastUsedAt.map { " · 最近使用 \($0.adminFormatted)" } ?? ""))
-              .font(.caption).foregroundStyle(.secondary)
+              .font(.app(.caption)).foregroundStyle(.secondary)
           }
           .padding(.vertical, 2)
           .swipeActions {
@@ -51,8 +51,9 @@ struct PasskeysView: View {
             Label { zh("在网页上添加 Passkey") } icon: { Image(systemName: "safari") }
           }
           .opensLinksInBrowser()
+          .rowFont()
         } footer: {
-          zh("Passkey 绑定网站的域名，要在网页上注册。不能删除最后一个 Passkey，否则就无法登录了。")
+          zh("Passkey 绑定网站的域名，要在网页上注册。不能删除最后一个 Passkey，否则就无法登录了。").footerFont()
         }
       } else if error == nil {
         ProgressView().frame(maxWidth: .infinity)

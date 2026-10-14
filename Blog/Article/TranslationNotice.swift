@@ -36,7 +36,7 @@ struct TranslationNotice: View {
 
   private var readOriginal: some View {
     Button("Read the Original") { switchLocale(post.sourceLocale) }
-      .font(.subheadline.weight(.semibold))
+      .font(.app(.subheadline).weight(.semibold))
   }
 
   private func callout(systemImage: String, @ViewBuilder text: () -> Text, @ViewBuilder action: () -> some View = { EmptyView() }) -> some View {
@@ -46,7 +46,7 @@ struct TranslationNotice: View {
         .accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 6) {
         text()
-          .font(.subheadline)
+          .font(.app(.subheadline))
         action()
       }
       Spacer(minLength: 0)

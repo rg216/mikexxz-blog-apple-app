@@ -120,9 +120,10 @@ struct PostEditorView: View {
       }
       if let savedNote {
         Label { zh(savedNote) } icon: { Image(systemName: "checkmark.circle.fill").foregroundStyle(.green) }
-          .font(.subheadline)
+          .font(.app(.subheadline))
       }
       Section {
+        Group {
         field("标题", text: $form.title, issue: "title")
         field("slug（网址）", text: $form.slug, issue: "slug", monospaced: true)
         Picker(selection: $form.status) {
@@ -140,13 +141,17 @@ struct PostEditorView: View {
             zh("首次发布")
           }
         }
+        }
+        .rowFont()
       } footer: {
         if let post, post.status == .published, form.slug != post.slug {
           zh("改 slug 之后，旧网址 /posts/\(post.slug) 会变成 404。")
             .foregroundStyle(.orange)
+            .footerFont()
         }
       }
       Section {
+        Group {
         if form.tags.isEmpty {
           zh("没有标签").foregroundStyle(.secondary)
         } else {
@@ -158,12 +163,15 @@ struct PostEditorView: View {
           zh("选择标签")
         }
         if let message = saveError?.issues.first(where: { $0.path.hasPrefix("tags") })?.message {
-          zh(message).font(.footnote).foregroundStyle(.red)
+          zh(message).font(.app(.footnote)).foregroundStyle(.red)
         }
+        }
+        .rowFont()
       } header: {
         zh("标签")
       }
       Section {
+        Group {
         if let cover = form.cover {
           AsyncImage(url: cover) { image in
             image.resizable().scaledToFit()
@@ -183,14 +191,16 @@ struct PostEditorView: View {
         } label: {
           zh(form.cover == nil ? "从媒体库选择头图" : "换一张")
         }
+        }
+        .rowFont()
       } header: {
         zh("头图")
       } footer: {
-        zh("显示在文章页顶部、列表卡片和分享卡片上。")
+        zh("显示在文章页顶部、列表卡片和分享卡片上。").footerFont()
       }
       Section {
         TextEditor(text: $form.content, selection: $selection)
-          .font(.system(.body, design: .monospaced))
+          .font(.app(.body, design: .monospaced))
           .frame(minHeight: 360)
           .autocorrectionDisabled()
         Button {
@@ -198,10 +208,11 @@ struct PostEditorView: View {
         } label: {
           Label { zh("插入图片") } icon: { Image(systemName: "photo.badge.plus") }
         }
+        .rowFont()
       } header: {
         zh("正文（Markdown）")
       } footer: {
-        zh("图片地址后面加 #small、#medium 或 #w=320 控制显示宽度；默认是比正文更宽的“大”图。")
+        zh("图片地址后面加 #small、#medium 或 #w=320 控制显示宽度；默认是比正文更宽的“大”图。").footerFont()
       }
       if let post {
         Section {
@@ -209,11 +220,12 @@ struct PostEditorView: View {
             NavigationLink(value: AdminRoute.translation(postId: post.id, locale: locale)) {
               translationRow(post: post, locale: locale)
             }
+            .rowFont()
           }
         } header: {
           zh("译文")
         } footer: {
-          zh(isDirty ? "原文有未保存的修改：先保存，译文页才看得到。" : "原文改过之后，已有的译文会标为过时。")
+          zh(isDirty ? "原文有未保存的修改：先保存，译文页才看得到。" : "原文改过之后，已有的译文会标为过时。").footerFont()
         }
       }
     }
@@ -230,7 +242,7 @@ struct PostEditorView: View {
             zh("原文已更新").foregroundStyle(.orange)
           }
         }
-        .font(.footnote)
+        .font(.app(.footnote))
       } else {
         zh("还没有").foregroundStyle(.secondary)
       }
@@ -242,13 +254,13 @@ struct PostEditorView: View {
   private func field(_ title: String, text: Binding<String>, issue: String, monospaced: Bool = false) -> some View {
     VStack(alignment: .leading, spacing: 4) {
       TextField(text: text) { zh(title) }
-        .font(monospaced ? .body.monospaced() : .body)
+        .font(.app(.body, design: monospaced ? .monospaced : nil))
         .autocorrectionDisabled(monospaced)
         #if os(iOS)
           .textInputAutocapitalization(monospaced ? .never : .sentences)
         #endif
       if let message = saveError?.issue(for: issue) {
-        zh(message).font(.footnote).foregroundStyle(.red)
+        zh(message).font(.app(.footnote)).foregroundStyle(.red)
       }
     }
   }
@@ -359,16 +371,17 @@ struct TagPickerView: View {
           } label: {
             HStack {
               zh(tag.name)
-              zh("#\(tag.slug)").foregroundStyle(.secondary).font(.footnote.monospaced())
+              zh("#\(tag.slug)").foregroundStyle(.secondary).font(.app(.footnote).monospaced())
               Spacer()
               if let index = selected.firstIndex(of: tag.slug) {
-                zh("\(index + 1)").font(.footnote.weight(.semibold)).foregroundStyle(.tint)
+                zh("\(index + 1)").font(.app(.footnote).weight(.semibold)).foregroundStyle(.tint)
                 Image(systemName: "checkmark").foregroundStyle(.tint)
               }
             }
             .contentShape(.rect)
           }
           .buttonStyle(.plain)
+          .rowFont()
         }
       }
       .searchable(text: $query)

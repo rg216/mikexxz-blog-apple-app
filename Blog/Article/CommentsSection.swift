@@ -17,7 +17,7 @@ struct CommentsSection: View {
     VStack(alignment: .leading, spacing: 16) {
       Divider()
       Text("Comments")
-        .font(.title2.bold())
+        .font(.app(.title2).bold())
         .accessibilityAddTraits(.isHeader)
       switch state {
       case nil, .loading:
@@ -39,7 +39,7 @@ struct CommentsSection: View {
       Link(destination: webCommentsURL) {
         Label("Comment on the Web", systemImage: "safari")
       }
-      .font(.subheadline.weight(.semibold))
+      .font(.app(.subheadline).weight(.semibold))
       .opensLinksInBrowser()
     }
     .environment(\.markdownTheme, .comment)
@@ -124,7 +124,7 @@ struct CommentView: View {
         }
         if let replyTo = comment.comment.replyTo {
           Text("Replying to @\(replyTo.login)")
-            .font(.footnote)
+            .font(.app(.footnote))
             .foregroundStyle(.secondary)
         }
         if comment.comment.deleted {
@@ -142,7 +142,7 @@ struct CommentView: View {
 
   @ViewBuilder private func name(_ author: CommentAuthor) -> some View {
     Text(author.displayName)
-      .font(.subheadline.weight(.semibold))
+      .font(.app(.subheadline).weight(.semibold))
     let date = Text(comment.comment.createdAt, format: SiteCalendar.dateStyle(locale: locale))
     Group {
       if comment.comment.editedAt == nil {
@@ -151,7 +151,7 @@ struct CommentView: View {
         Text("\(date) · Edited")
       }
     }
-    .font(.footnote.weight(.semibold))
+    .font(.app(.footnote).weight(.semibold))
     .foregroundStyle(.secondary)
   }
 

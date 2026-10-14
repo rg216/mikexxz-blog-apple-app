@@ -107,7 +107,7 @@ struct TranslationEditorView: View {
       }
       if let savedNote {
         Label { zh(savedNote) } icon: { Image(systemName: "checkmark.circle.fill").foregroundStyle(.green) }
-          .font(.subheadline)
+          .font(.app(.subheadline))
       }
       statusSection(post)
       generationSection(post)
@@ -116,29 +116,31 @@ struct TranslationEditorView: View {
       } else {
         Section {
           TextField(text: $title) { zh("标题") }
+            .font(.app(.body))
           TextEditor(text: $content)
-            .font(.system(.body, design: .monospaced))
+            .font(.app(.body, design: .monospaced))
             .frame(minHeight: 360)
             .autocorrectionDisabled()
         } header: {
           zh("译文")
         } footer: {
           if generated != nil {
-            zh(isUnmodifiedMachineOutput ? "未经修改的机器译文：保存后标注“机器翻译”。" : "改过生成结果：保存后记为人工译文。")
+            zh(isUnmodifiedMachineOutput ? "未经修改的机器译文：保存后标注“机器翻译”。" : "改过生成结果：保存后记为人工译文。").footerFont()
           }
         }
       }
       Section {
         DisclosureGroup {
           VStack(alignment: .leading, spacing: 8) {
-            zh(post.title).font(.headline)
+            zh(post.title).font(.app(.headline))
             zh(post.contentMd)
-              .font(.system(.footnote, design: .monospaced))
+              .font(.app(.footnote, design: .monospaced))
               .textSelection(.enabled)
           }
         } label: {
           zh("原文（\(post.sourceLocale.adminName)）")
         }
+        .rowFont()
       }
     }
     .formStyle(.grouped)
@@ -152,21 +154,23 @@ struct TranslationEditorView: View {
         } label: {
           zh("已保存的译文")
         }
+        .rowFont()
         LabeledContent { zh(saved.translatedAt.adminFormatted) } label: { zh("保存于") }
+          .rowFont()
         if saved.outdated {
           Label { zh("原文在这之后改过，译文可能已经过时。") } icon: { Image(systemName: "clock.badge.exclamationmark") }
             .foregroundStyle(.orange)
-            .font(.subheadline)
+            .font(.app(.subheadline))
         }
       } else {
         zh("还没有\(locale.adminName)译文：保存之前，\(locale.adminName)读者打开这篇文章看到的是原文。")
           .foregroundStyle(.secondary)
-          .font(.subheadline)
+          .font(.app(.subheadline))
       }
       if post.status == .draft {
         zh("文章还是草稿：译文保存后，要等文章发布才对读者可见。")
           .foregroundStyle(.secondary)
-          .font(.footnote)
+          .font(.app(.footnote))
       }
     }
   }
@@ -190,25 +194,27 @@ struct TranslationEditorView: View {
           }
         }
         .disabled(!config.available)
+        .rowFont()
         if !config.available {
           zh(config.reason == "rate_limiter_unavailable" ? "限流服务（Redis）连不上：翻译按次计费，限不了流就不放行。" : "服务器没有配置 ANTHROPIC_API_KEY（和 REDIS_URL），生成不可用。")
-            .font(.footnote)
+            .font(.app(.footnote))
             .foregroundStyle(.secondary)
         }
         if case .failed(let message) = generation.phase {
           Label { zh(message) } icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red) }
-            .font(.subheadline)
+            .font(.app(.subheadline))
           if generation.canResume {
             Button {
               startGeneration(resume: true)
             } label: {
               zh("从第 \(generation.segments.count + 1) 段继续（已完成的不重新生成）")
             }
+            .rowFont()
           }
         }
         if generation.phase == .finished {
           zh("生成完成：\(generation.combinedModel)，输入 \(generation.usage.inputTokens) / 输出 \(generation.usage.outputTokens) token，缓存命中 \(generation.usage.cacheReadInputTokens)。")
-            .font(.footnote)
+            .font(.app(.footnote))
             .foregroundStyle(.secondary)
         }
       } else {
@@ -217,7 +223,7 @@ struct TranslationEditorView: View {
     } header: {
       zh("大模型翻译")
     } footer: {
-      zh("生成结果先放进编辑器，看过、保存后才对读者可见。正文按段逐个生成，一次只发一个请求（共享提示缓存）。")
+      zh("生成结果先放进编辑器，看过、保存后才对读者可见。正文按段逐个生成，一次只发一个请求（共享提示缓存）。").footerFont()
     }
   }
 
@@ -226,12 +232,13 @@ struct TranslationEditorView: View {
       ProgressView(value: Double(generation.step), total: Double(max(generation.totalSteps, 1))) {
         zh(generation.step == 0 ? "正在翻译标题…" : "正在翻译正文：第 \(generation.step) / \(generation.totalSteps - 1) 段")
       }
+      .rowFont()
       if generation.thinking {
-        zh("（模型思考中…）").foregroundStyle(.secondary)
+        zh("（模型思考中…）").foregroundStyle(.secondary).rowFont()
       }
       if !generation.streaming.isEmpty {
         zh(String(generation.streaming.suffix(1500)))
-          .font(.system(.footnote, design: .monospaced))
+          .font(.app(.footnote, design: .monospaced))
           .foregroundStyle(.secondary)
       }
     } header: {
