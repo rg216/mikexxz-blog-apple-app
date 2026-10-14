@@ -298,6 +298,7 @@ struct TranslationEditorView: View {
       generated = nil
       saveError = nil
       savedNote = result.origin == .machine ? "已保存为机器译文。" : "已保存为人工译文。"
+      session.dataChanged()
     } catch {
       session.handle(error)
       saveError = error
@@ -308,6 +309,7 @@ struct TranslationEditorView: View {
     guard let client else { return }
     do {
       try await client.deleteTranslation(postId: postId, locale: locale)
+      session.dataChanged()
       saved = nil
       title = ""
       content = ""

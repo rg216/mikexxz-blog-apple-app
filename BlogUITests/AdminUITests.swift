@@ -53,6 +53,29 @@ final class AdminUITests: XCTestCase {
     snapshot(app, "admin-switch-4-tags")
   }
 
+  /// 读者标签页里打开一篇文章，切到后台再切回来，再到后台里点开一页：
+  /// Mac 上各标签页共用侧边栏的同一个详情栏，导航路径类型不同（[Route] / [AdminRoute]）时曾经崩溃
+  @MainActor func testSwitchingBetweenReaderAndAdminTabs() throws {
+    let app = try launchSignedIn()
+    press(sidebarTab(app, "文章"))
+    let readerPost = app.descendants(matching: .any).matching(identifier: "post-row").firstMatch
+    XCTAssertTrue(readerPost.waitForExistence(timeout: 15), "文章列表没有加载出来")
+    press(readerPost)
+    XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "article-title").firstMatch.waitForExistence(timeout: 15), "文章没有打开")
+    press(sidebarTab(app, "后台"))
+    sleep(2)
+    press(row(app, "标签"))
+    XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "admin-tag-row").firstMatch.waitForExistence(timeout: 10), "后台标签页没有打开")
+    press(sidebarTab(app, "文章"))
+    sleep(2)
+    XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "article-title").firstMatch.waitForExistence(timeout: 15), "切回来以后文章没有还原")
+    snapshot(app, "switch-reader-restored")
+    press(sidebarTab(app, "后台"))
+    sleep(2)
+    XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "admin-tag-row").firstMatch.waitForExistence(timeout: 10), "切回后台以后标签页没有还原")
+    snapshot(app, "switch-admin-restored")
+  }
+
   /// 顶层的标签页：iPhone 上是标签栏按钮，Mac 上是侧边栏的一行（后台目录里也有"文章""标签"，不能混）
   @MainActor private func sidebarTab(_ app: XCUIApplication, _ label: String) -> XCUIElement {
     #if os(macOS)
@@ -164,7 +187,9 @@ final class AdminUITests: XCTestCase {
     #endif
     press(app.buttons["删除文章"].firstMatch)
     press(app.buttons["删除文章和所有译文"].firstMatch)
-    XCTAssertTrue(app.staticTexts["界面测试文章 \(slug)"].waitForNonExistence(timeout: 10), "文章没有删掉")
+    let gone = app.staticTexts["界面测试文章 \(slug)"].waitForNonExistence(timeout: 10)
+    if !gone { snapshot(app, "admin-post-not-deleted") }
+    XCTAssertTrue(gone, "文章没有删掉")
   }
 
   /// 媒体库的"上传 → 从照片上传"要弹出系统的照片选择器（PhotosPicker 不能直接放在菜单里，见 MediaLibraryView）

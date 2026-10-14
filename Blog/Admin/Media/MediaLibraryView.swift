@@ -106,7 +106,7 @@ private struct MediaGrid: View {
       if !query.isEmpty { try? await Task.sleep(for: .milliseconds(250)) }
       await load()
     }
-    .onAppear { Task { await load() } }
+    .onChange(of: session.revision) { Task { await load() } }
     .onChange(of: photoItems) { _, items in
       guard !items.isEmpty else { return }
       Task { await uploadPhotos(items) }

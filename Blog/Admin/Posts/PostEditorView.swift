@@ -295,6 +295,7 @@ struct PostEditorView: View {
       form = PostForm(saved)
       saveError = nil
       savedNote = saved.status == .published ? "已保存，前台页面会在几秒内更新。" : "已保存为草稿。"
+      session.dataChanged()
     } catch {
       session.handle(error)
       saveError = error
@@ -305,6 +306,7 @@ struct PostEditorView: View {
     guard let client, let post else { return }
     do {
       try await client.deletePost(id: post.id)
+      session.dataChanged()
       self.post = nil
       form = PostForm()
       dismiss()

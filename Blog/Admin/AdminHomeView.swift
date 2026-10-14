@@ -5,7 +5,7 @@ import SwiftUI
 /// "后台"标签页：没登录时是登录入口和设置；登录后是各个管理页面的目录
 struct AdminHomeView: View {
   /// 由 RootView 保管，切换标签页再回来还停在原来的页面
-  @Binding var path: [AdminRoute]
+  @Binding var path: NavigationPath
 
   @Environment(AdminSession.self) private var session
 
@@ -17,7 +17,7 @@ struct AdminHomeView: View {
     }
     // 退出或 session 失效时回到目录，不留在需要登录的页面上
     .onChange(of: session.isSignedIn) { _, signedIn in
-      if !signedIn { path = [] }
+      if !signedIn { path = NavigationPath() }
     }
   }
 }

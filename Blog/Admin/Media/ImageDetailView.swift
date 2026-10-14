@@ -167,6 +167,7 @@ struct ImageDetailView: View {
     defer { saving = false }
     do {
       _ = try await client.updateImage(id: imageId, ImageUpdateInput(filename: filename, description: description))
+      session.dataChanged()
       await load()
     } catch {
       session.handle(error)
@@ -178,6 +179,7 @@ struct ImageDetailView: View {
     guard let client else { return }
     do {
       try await client.moveImages(ids: [imageId], folderId: folderId)
+      session.dataChanged()
       await load()
     } catch {
       session.handle(error)
@@ -189,6 +191,7 @@ struct ImageDetailView: View {
     guard let client, let detail else { return }
     do {
       try await client.deleteImages(ids: [imageId], force: !detail.posts.isEmpty)
+      session.dataChanged()
       dismiss()
     } catch {
       session.handle(error)

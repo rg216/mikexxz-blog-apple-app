@@ -25,10 +25,10 @@ enum Route: Hashable {
 /// 每个标签页各有一条导航栈。正文里指向本站文章、标签页的链接在栈里打开，不跳去浏览器。
 /// 导航路径由 RootView 保管（见那里的说明），这里只拿绑定
 struct RoutedStack<Root: View>: View {
-  @Binding var path: [Route]
+  @Binding var path: NavigationPath
   private let root: Root
 
-  init(path: Binding<[Route]>, @ViewBuilder root: () -> Root) {
+  init(path: Binding<NavigationPath>, @ViewBuilder root: () -> Root) {
     _path = path
     self.root = root()
   }

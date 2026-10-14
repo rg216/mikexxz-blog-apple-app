@@ -32,7 +32,9 @@
 ## 后台（"后台"标签页）
 - 不登录也能进：里面的"设置"放着读者的文章语言（各列表工具栏里原来的地球菜单移到了这里；macOS 照平台惯例另有 ⌘, 的设置窗口）。登录后：文章、译文（含大模型生成）、标签、评论审核、媒体库、系统状态、Passkey、翻译模型
 - 登录：RFC 8252 的浏览器授权（网站 CLAUDE.md "安全"一节）。`AppAuthRequest` 生成 PKCE verifier / state，`ASWebAuthenticationSession`（`.shared`，和 Safari 共用登录状态）打开网站的 `/admin/authorize-app`，管理员在网页上用 Passkey 登录、点"允许"，回跳 `mikexxz-blog://auth/callback?code&state`，`AdminClient.exchange` 换 token。不在 App 里直接用 Passkey：那要 Associated Domains（网站放 apple-app-site-association、App 签名带团队）
-- 各标签页的导航路径都放在 `RootView`，Mac 上每次切回一个标签页给它的导航栈换个 id 重建：Mac 的侧边栏 TabView 切回来时，NavigationStack 显示第一页、路径却还是原来的，之后点链接没反应（2026-10 实测；`AdminUITests.testAdminSurvivesTabSwitch`）
+- 顶层导航：iPhone / iPad 用 TabView；Mac 用 NavigationSplitView（侧边栏 + 详情，换栏目就换一个新的导航栈），不用 TabView。Mac 的 TabView 侧边栏里各标签页共用一个导航栏，每页一个 NavigationStack 会打架：切回来显示第一页而路径还在、之后点链接没反应；路径类型不同（[Route] / [AdminRoute]）时 SwiftUI 内部 try! 崩溃（`AnyNavigationPath.Error.comparisonTypeMismatch`）。2026-10 实测，见 `RootView` 的说明和 `AdminUITests` 里两个切换栏目的测试
+- 各栏目的导航路径都放在 `RootView`，一律用 `NavigationPath`；只接受当前栏目对路径的修改（被换下去的导航栈销毁前会把路径清空）
+- 后台列表靠 `AdminSession.revision` 重新加载（保存、删除后调 `dataChanged()`），不靠 onAppear：从编辑页返回时它不一定触发，列表会显示已删掉的文章
 - 页面拿后台客户端一律读 `AdminSession.client`（AdminSession 在 App 根部注入）。不要在后台标签页的 NavigationStack 上另设环境值往下传：macOS 侧边栏 TabView 里推入的页面拿不到它（iPhone 上拿得到），后台页面会一直转圈（2026-10 实测）
 - token 存钥匙串（`TokenStore`：数据保护钥匙串、ThisDeviceOnly；没正式签名的 Mac 构建退回文件钥匙串）。请求带 `Authorization: Bearer`；`AdminClient` 用单独的 URLSession，不存不发 cookie（API 对"只带 Bearer、不带 cookie"的请求才免 Origin 检查）、不用 URLCache。任何接口 401 → `AdminSession.handle` 清掉 token 回到登录
 - 后台界面固定中文，和网页后台一样：API 的报错、状态说明都是写给管理员的中文，直接显示（`AdminAPIError.message`、字段错误 `issues`）。后台的文字用 `zh()`（`Text(verbatim:)`），不进字符串表

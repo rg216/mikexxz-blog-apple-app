@@ -30,6 +30,13 @@ final class AdminSession {
   private(set) var client: AdminClient?
   /// 刚才因为 session 失效而退出（提示"登录已过期"）
   private(set) var expired = false
+  /// 后台数据的版本：保存、删除之后加一，列表页据此重新加载（不依赖 onAppear：导航返回时它不一定触发，
+  /// 列表会显示已经删掉的文章）
+  private(set) var revision = 0
+
+  func dataChanged() {
+    revision += 1
+  }
 
   @ObservationIgnored private let apiBaseURL: URL
   @ObservationIgnored private let siteURL: URL

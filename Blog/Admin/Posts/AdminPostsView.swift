@@ -38,8 +38,8 @@ struct AdminPostsView: View {
           }
         }
       }
-      // 从编辑页返回时重新加载（列表页一直在导航栈里，.task 不会再跑）
-      .onAppear { Task { await load() } }
+      // 编辑页里保存、删除之后 revision 会变：据此重新加载（只靠 onAppear 不可靠，返回时它不一定触发）
+      .task(id: session.revision) { await load() }
       .refreshable { await load() }
   }
 
