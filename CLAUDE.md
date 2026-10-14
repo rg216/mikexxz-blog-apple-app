@@ -32,6 +32,7 @@
 ## 后台（"后台"标签页）
 - 不登录也能进：里面的"设置"放着读者的文章语言（各列表工具栏里原来的地球菜单移到了这里；macOS 照平台惯例另有 ⌘, 的设置窗口）。登录后：文章、译文（含大模型生成）、标签、评论审核、媒体库、系统状态、Passkey、翻译模型
 - 登录：RFC 8252 的浏览器授权（网站 CLAUDE.md "安全"一节）。`AppAuthRequest` 生成 PKCE verifier / state，`ASWebAuthenticationSession`（`.shared`，和 Safari 共用登录状态）打开网站的 `/admin/authorize-app`，管理员在网页上用 Passkey 登录、点"允许"，回跳 `mikexxz-blog://auth/callback?code&state`，`AdminClient.exchange` 换 token。不在 App 里直接用 Passkey：那要 Associated Domains（网站放 apple-app-site-association、App 签名带团队）
+- 页面拿后台客户端一律读 `AdminSession.client`（AdminSession 在 App 根部注入）。不要在后台标签页的 NavigationStack 上另设环境值往下传：macOS 侧边栏 TabView 里推入的页面拿不到它（iPhone 上拿得到），后台页面会一直转圈（2026-10 实测）
 - token 存钥匙串（`TokenStore`：数据保护钥匙串、ThisDeviceOnly；没正式签名的 Mac 构建退回文件钥匙串）。请求带 `Authorization: Bearer`；`AdminClient` 用单独的 URLSession，不存不发 cookie（API 对"只带 Bearer、不带 cookie"的请求才免 Origin 检查）、不用 URLCache。任何接口 401 → `AdminSession.handle` 清掉 token 回到登录
 - 后台界面固定中文，和网页后台一样：API 的报错、状态说明都是写给管理员的中文，直接显示（`AdminAPIError.message`、字段错误 `issues`）。后台的文字用 `zh()`（`Text(verbatim:)`），不进字符串表
 - 大模型翻译（`TranslationGeneration`）：段数从 `GET /admin/posts/:id/translation-plan` 拿，App 不自己切分（swift-markdown 和网站的 remark 块边界可能不同，段号会悄悄错位）。其余规则同网页：一次一个请求、开始时定下模型、失败从断点继续、只有 end_turn 算成功、未经修改才记为机器译文
