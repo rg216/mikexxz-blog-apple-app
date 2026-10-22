@@ -467,6 +467,40 @@ public struct ImageUpdateInput: Encodable, Sendable {
 public struct SiteSettings: Codable, Hashable, Sendable {
   public var translationModel: String
   public var tagTranslationModel: String
+  // 生成头图（2026-10 加入）。可选：API 还没更新时没有这几项，设置页就不显示"生成头图"
+  /// 写画面描述的 Claude 模型
+  public var coverPromptModel: String?
+  /// 出图的 OpenAI 模型和画质
+  public var coverImageModel: String?
+  public var coverImageQuality: String?
+  /// 头图风格（英文），每次出图都拼在画面描述前面
+  public var coverStyle: String?
+
+  public init(translationModel: String, tagTranslationModel: String, coverPromptModel: String? = nil, coverImageModel: String? = nil, coverImageQuality: String? = nil, coverStyle: String? = nil) {
+    self.translationModel = translationModel
+    self.tagTranslationModel = tagTranslationModel
+    self.coverPromptModel = coverPromptModel
+    self.coverImageModel = coverImageModel
+    self.coverImageQuality = coverImageQuality
+    self.coverStyle = coverStyle
+  }
+
+  /// PATCH /admin/settings 的请求体（只改给出的键）应用到本地，用于乐观更新。不认识的键忽略
+  public func applying(_ changes: [String: String]) -> SiteSettings {
+    var settings = self
+    for (key, value) in changes {
+      switch key {
+      case "translationModel": settings.translationModel = value
+      case "tagTranslationModel": settings.tagTranslationModel = value
+      case "coverPromptModel": settings.coverPromptModel = value
+      case "coverImageModel": settings.coverImageModel = value
+      case "coverImageQuality": settings.coverImageQuality = value
+      case "coverStyle": settings.coverStyle = value
+      default: break
+      }
+    }
+    return settings
+  }
 }
 
 /// 可选的翻译模型（网站的 translationModels；2026-10 按官方文档核对）

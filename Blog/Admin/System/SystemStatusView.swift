@@ -2,7 +2,7 @@ import BlogKit
 import SwiftUI
 
 /// 系统状态：各项依赖配好了没有、能不能用，定时任务最近一次的结果。只报告状态，不返回任何配置值。
-/// 不自动刷新：每次检查都会连各个服务（包括 Anthropic）
+/// 不自动刷新：每次检查都会连各个服务（包括 Anthropic、OpenAI）
 struct SystemStatusView: View {
   private var client: AdminClient? { session.client }
   @Environment(AdminSession.self) private var session
@@ -100,7 +100,8 @@ struct SystemStatusView: View {
     case "migrations": "数据库迁移"
     case "redis": "Redis（限流、阅读数）"
     case "storage": "图片存储"
-    case "anthropic": "Claude API"
+    case "anthropic": "Claude API（翻译、头图描述）"
+    case "openai": "OpenAI API（头图出图）"
     case "github": "GitHub 登录（评论）"
     case "revalidate": "缓存失效通知"
     case "cron": "定时任务密钥"

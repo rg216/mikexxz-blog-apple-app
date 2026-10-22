@@ -21,6 +21,8 @@ struct PostEditorView: View {
   @State private var previewing = false
   @State private var confirmingDelete = false
   @State private var confirmingDiscard = false
+  @State private var coverGeneration = CoverGeneration()
+  @State private var generatingCover = false
 
   private enum PickTarget: Identifiable {
     case cover, insert
@@ -52,12 +54,19 @@ struct PostEditorView: View {
     .toolbar { toolbar }
     .confirmDiscard(when: isDirty, isPresented: $confirmingDiscard) { dismiss() }
     .task { await load() }
+    // 离开编辑页时停掉还在进行的生成（不再计费）；关掉生成头图的 sheet 不算离开
+    .onDisappear { coverGeneration.cancel() }
     .sheet(item: $picking) { target in
       MediaPickerView { image in
         switch target {
         case .cover: form.cover = image.url
         case .insert: insert(image)
         }
+      }
+    }
+    .sheet(isPresented: $generatingCover) {
+      CoverGeneratorView(generation: coverGeneration, source: coverSource) { image in
+        form.cover = image.url
       }
     }
     .sheet(isPresented: $choosingTags) {
@@ -189,14 +198,20 @@ struct PostEditorView: View {
         Button {
           picking = .cover
         } label: {
-          zh(form.cover == nil ? "从媒体库选择头图" : "换一张")
+          zh(form.cover == nil ? "从媒体库选择头图" : "从媒体库换一张")
         }
+        Button {
+          generatingCover = true
+        } label: {
+          Label { zh("生成头图…") } icon: { Image(systemName: "sparkles") }
+        }
+        .accessibilityIdentifier("generate-cover")
         }
         .rowFont()
       } header: {
         zh("头图")
       } footer: {
-        zh("显示在文章页顶部、列表卡片和分享卡片上。").footerFont()
+        zh("显示在文章页顶部、列表卡片和分享卡片上。“生成头图”由 Claude 按文章写画面描述、OpenAI 出图，选中的那张才进媒体库。").footerFont()
       }
       Section {
         TextEditor(text: $form.content, selection: $selection)
@@ -232,6 +247,12 @@ struct PostEditorView: View {
     .formStyle(.grouped)
   }
 
+  /// 生成头图用表单里此刻的内容（还没保存的修改也算）；标签发名称
+  private var coverSource: CoverGeneration.Source {
+    CoverGeneration.Source(
+      title: form.title, slug: form.slug, tags: form.tags.map { slug in allTags.first { $0.slug == slug }?.name ?? slug }, content: form.content)
+  }
+
   private func translationRow(post: AdminPost, locale: ContentLocale) -> some View {
     let translation = post.translations.first { $0.locale == locale }
     return LabeledContent {
@@ -254,6 +275,8 @@ struct PostEditorView: View {
   private func field(_ title: String, text: Binding<String>, issue: String, monospaced: Bool = false) -> some View {
     VStack(alignment: .leading, spacing: 4) {
       TextField(text: text) { zh(title) }
+        // macOS 的分组表单不把标签当作输入框的辅助功能名称，UI 测试按 identifier 找
+        .accessibilityIdentifier(title)
         .font(.app(.body, design: monospaced ? .monospaced : nil))
         .autocorrectionDisabled(monospaced)
         #if os(iOS)

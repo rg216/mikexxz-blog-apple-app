@@ -218,6 +218,69 @@ final class AdminUITests: XCTestCase {
   }
 
   /// 媒体库的"上传 → 从照片上传"要弹出系统的照片选择器（PhotosPicker 不能直接放在菜单里，见 MediaLibraryView）
+  /// 生成头图：要在本地 API 里把 Claude 和 OpenAI 换成假的（不花钱），见 CLAUDE.md"测试后台"
+  @MainActor func testGenerateCover() throws {
+    let app = try launchSignedIn()
+    press(row(app, "文章"))
+    press(app.buttons["写文章"].firstMatch)
+    type(app.textFields["标题"].firstMatch, "界面测试头图")
+    let generate = app.buttons["generate-cover"].firstMatch
+    for _ in 0..<3 where !generate.isHittable { app.swipeUp() }
+    press(generate)
+
+    // 第一步：Claude 写描述（标题、方向都带过去）
+    let direction = app.textFields["cover-direction"].firstMatch
+    XCTAssertTrue(direction.waitForExistence(timeout: 10), "生成头图的配置没有加载出来")
+    type(direction, "暖色")
+    press(app.buttons["用 Sonnet 5.5 写描述"].firstMatch)
+    let prompt = app.textViews["cover-prompt"].firstMatch
+    let written = NSPredicate { _, _ in (prompt.value as? String)?.contains("暖色") == true }
+    XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: written, object: nil)], timeout: 15), .completed, "画面描述没有填进来")
+    snapshot(app, "cover-brief")
+
+    // 第二步：出图。先试一次"停止"
+    let start = app.buttons["cover-generate"].firstMatch
+    #if os(macOS)
+      // Mac 的 sheet 里 swipeUp 不滚动；按钮在底部工具栏后面时 isHittable 仍为真，直接滚到底
+      app.sheets.firstMatch.scroll(byDeltaX: 0, deltaY: -1000)
+    #else
+      for _ in 0..<3 where !start.isHittable { app.swipeUp() }
+    #endif
+    press(start)
+    XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label BEGINSWITH '正在生成' OR value BEGINSWITH '正在生成'")).firstMatch.waitForExistence(timeout: 10), "没有显示生成进度")
+    sleep(3)
+    snapshot(app, "cover-generating")
+    press(start)
+    XCTAssertTrue(app.buttons["用 GPT Image 2.5 Flare 生成"].waitForExistence(timeout: 10), "停止之后按钮没有恢复")
+
+    press(start)
+    XCTAssertTrue(app.buttons["再生成一张"].waitForExistence(timeout: 40), "没有生成出图片")
+    // 结果在表单下方：Form 只创建看得见的行，要滚过去
+    let candidate = app.buttons["cover-candidate"].firstMatch
+    #if os(macOS)
+      app.sheets.firstMatch.scroll(byDeltaX: 0, deltaY: -1000)
+    #else
+      for _ in 0..<4 where !candidate.exists { app.swipeUp() }
+    #endif
+    XCTAssertTrue(candidate.waitForExistence(timeout: 5), "生成的图片没有显示在结果里")
+    snapshot(app, "cover-generated")
+
+    // 设为头图：上传进媒体库，sheet 关掉，编辑页显示头图
+    press(app.buttons["设为头图"].firstMatch)
+    XCTAssertTrue(app.buttons["移除头图"].waitForExistence(timeout: 30), "头图没有设上")
+    snapshot(app, "cover-picked")
+  }
+
+  @MainActor func testCoverSettings() throws {
+    let app = try launchSignedIn()
+    press(row(app, "设置"))
+    let style = app.textViews["cover-style"].firstMatch
+    for _ in 0..<4 where !style.isHittable { app.swipeUp() }
+    XCTAssertTrue(style.waitForExistence(timeout: 10), "设置里没有头图风格")
+    XCTAssertTrue((style.value as? String)?.hasPrefix("Cover image for") == true)
+    snapshot(app, "cover-settings")
+  }
+
   @MainActor func testPhotoPickerOpens() throws {
     let app = try launchSignedIn()
     press(row(app, "媒体库"))

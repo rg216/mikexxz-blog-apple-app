@@ -167,39 +167,8 @@ public struct AdminClient: Sendable {
   /// 正文的第 index 段：NDJSON 流，逐行解码。服务器在开始流之前出的错（凭证、限流、409）照常抛出 AdminAPIError；
   /// 流开始后的错误是流里的 `.error` 事件。取消调用它的 Task 会断开连接，服务器随即中止上游请求、不再计费
   public func generateSegment(postId: Int, locale: ContentLocale, index: Int, sourceHash: String, model: String) async throws(AdminAPIError) -> AsyncThrowingStream<TranslationStreamEvent, any Error> {
-    let request = try Self.makeRequest(
-      baseURL: baseURL, token: token, method: "POST", path: ["admin", "posts", String(postId), "translations", locale.rawValue, "generate"], query: [],
-      body: GenerateBody(part: "body", index: index, sourceHash: sourceHash, model: model), accept: "application/x-ndjson")
-    let bytes: URLSession.AsyncBytes
-    let response: URLResponse
-    do {
-      (bytes, response) = try await session.bytes(for: request)
-    } catch {
-      throw Self.transportError(error)
-    }
-    let status = (response as? HTTPURLResponse)?.statusCode ?? 0
-    guard (200..<300).contains(status) else {
-      var data = Data()
-      do {
-        for try await byte in bytes { data.append(byte) }
-      } catch {
-        throw Self.transportError(error)
-      }
-      throw Self.serverError(status: status, data: data)
-    }
-    return AsyncThrowingStream { continuation in
-      let task = Task {
-        do {
-          for try await line in bytes.lines where !line.isEmpty {
-            continuation.yield(try BlogClient.decoder.decode(TranslationStreamEvent.self, from: Data(line.utf8)))
-          }
-          continuation.finish()
-        } catch {
-          continuation.finish(throwing: error)
-        }
-      }
-      continuation.onTermination = { _ in task.cancel() }
-    }
+    try await ndjson(
+      ["admin", "posts", String(postId), "translations", locale.rawValue, "generate"], body: GenerateBody(part: "body", index: index, sourceHash: sourceHash, model: model))
   }
 
   // MARK: - 标签
@@ -363,6 +332,26 @@ public struct AdminClient: Sendable {
     try await send("DELETE", ["admin", "media-folders", String(id)])
   }
 
+  // MARK: - 生成头图
+
+  public func coverConfig() async throws(AdminAPIError) -> CoverConfig {
+    try await get(["admin", "covers", "config"])
+  }
+
+  public func writeCoverBrief(_ input: CoverBriefInput) async throws(AdminAPIError) -> CoverBriefResult {
+    try await send("POST", ["admin", "covers", "brief"], body: input)
+  }
+
+  private struct CoverImageBody: Encodable {
+    let prompt: String
+  }
+
+  /// 出图：NDJSON 流（ping / partial … 以 done 或 error 结束）。模型、画质、风格都用服务器设置里的。
+  /// 开始流之前的错误（内容审核拒绝提示词 400、限流 429、凭证 502）照常抛出；取消 Task 即断开、上游随之中止
+  public func generateCoverImage(prompt: String) async throws(AdminAPIError) -> AsyncThrowingStream<CoverImageStreamEvent, any Error> {
+    try await ndjson(["admin", "covers", "generate"], body: CoverImageBody(prompt: prompt))
+  }
+
   // MARK: - 设置与状态
 
   public func settings() async throws(AdminAPIError) -> SiteSettings {
@@ -378,6 +367,41 @@ public struct AdminClient: Sendable {
   }
 
   // MARK: - 请求
+
+  /// POST 一个请求，响应是 NDJSON 流：逐行解码成事件。非 2xx 的响应（流开始之前的错误）读完整个响应体，照常抛出 AdminAPIError
+  private func ndjson<Event: Decodable & Sendable>(_ path: [String], body: some Encodable) async throws(AdminAPIError) -> AsyncThrowingStream<Event, any Error> {
+    let request = try Self.makeRequest(baseURL: baseURL, token: token, method: "POST", path: path, query: [], body: body, accept: "application/x-ndjson")
+    let bytes: URLSession.AsyncBytes
+    let response: URLResponse
+    do {
+      (bytes, response) = try await session.bytes(for: request)
+    } catch {
+      throw Self.transportError(error)
+    }
+    let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+    guard (200..<300).contains(status) else {
+      var data = Data()
+      do {
+        for try await byte in bytes { data.append(byte) }
+      } catch {
+        throw Self.transportError(error)
+      }
+      throw Self.serverError(status: status, data: data)
+    }
+    return AsyncThrowingStream { continuation in
+      let task = Task {
+        do {
+          for try await line in bytes.lines where !line.isEmpty {
+            continuation.yield(try BlogClient.decoder.decode(Event.self, from: Data(line.utf8)))
+          }
+          continuation.finish()
+        } catch {
+          continuation.finish(throwing: error)
+        }
+      }
+      continuation.onTermination = { _ in task.cancel() }
+    }
+  }
 
   private func get<T: Decodable>(_ path: [String], query: [URLQueryItem] = []) async throws(AdminAPIError) -> T {
     let request = try Self.makeRequest(baseURL: baseURL, token: token, method: "GET", path: path, query: query, body: nil as String?)

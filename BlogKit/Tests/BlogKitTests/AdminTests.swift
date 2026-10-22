@@ -85,3 +85,62 @@ struct AdminModelTests {
     #expect(tag.missingTranslations == [.ja])
   }
 }
+
+struct CoverModelTests {
+  @Test func config() throws {
+    let json = #"{"brief":{"available":false,"model":"claude-sonnet-5-5","reason":"not_configured"},"image":{"available":true,"model":"gpt-image-2.5-flare","quality":"medium"}}"#
+    let config = try BlogClient.decoder.decode(CoverConfig.self, from: Data(json.utf8))
+    #expect(!config.brief.available)
+    #expect(config.brief.reason == "not_configured")
+    #expect(config.image.available)
+    #expect(config.image.quality == "medium")
+  }
+
+  @Test func briefInputOmitsAnEmptyDirection() throws {
+    func keys(_ input: CoverBriefInput) throws -> Set<String> {
+      let object = try #require(JSONSerialization.jsonObject(with: AdminClient.encoder.encode(input)) as? [String: Any])
+      return Set(object.keys)
+    }
+    #expect(try keys(CoverBriefInput(title: "T", tags: [], contentMd: "", direction: "  \n")) == ["title", "tags", "contentMd"])
+    let input = CoverBriefInput(title: "T", tags: ["缓存"], contentMd: "x", direction: " 暖色调 ")
+    #expect(input.direction == "暖色调")
+    #expect(try keys(input) == ["title", "tags", "contentMd", "direction"])
+  }
+
+  @Test func imageStreamEvents() throws {
+    func decode(_ line: String) throws -> CoverImageStreamEvent {
+      try BlogClient.decoder.decode(CoverImageStreamEvent.self, from: Data(line.utf8))
+    }
+    let bytes = Data([0x52, 0x49, 0x46, 0x46])
+    let base64 = bytes.base64EncodedString()
+    #expect(try decode(#"{"type":"ping"}"#) == .ping)
+    #expect(try decode(#"{"type":"partial","index":0,"contentType":"image/webp","image":"\#(base64)"}"#) == .partial(index: 0, contentType: "image/webp", data: bytes))
+    #expect(
+      try decode(#"{"type":"done","contentType":"image/png","image":"\#(base64)","model":"gpt-image-2.5-flare","quality":"high","usage":{"inputTokens":120,"outputTokens":6208}}"#)
+        == .done(CoverImage(contentType: "image/png", data: bytes, model: "gpt-image-2.5-flare", quality: "high", usage: CoverImageUsage(inputTokens: 120, outputTokens: 6208))))
+    #expect(try decode(#"{"type":"error","code":"rate_limited","message":"太快了"}"#) == .error(code: "rate_limited", message: "太快了"))
+    #expect(try decode(#"{"type":"future"}"#) == .unknown)
+    #expect(throws: DecodingError.self) { try decode(#"{"type":"partial","index":0,"contentType":"image/webp","image":"不是base64"}"#) }
+  }
+
+  @Test func fileNameMatchesTheSite() {
+    #expect(CoverOptions.fileName(slug: "Hello World", n: 2, contentType: "image/webp") == "cover-hello-world-2.webp")
+    #expect(CoverOptions.fileName(slug: "  next.js_16 ", n: 1, contentType: "image/jpeg") == "cover-next-js-16-1.jpg")
+    #expect(CoverOptions.fileName(slug: "--a--b--", n: 1, contentType: "image/png") == "cover-a--b-1.png")
+    #expect(CoverOptions.fileName(slug: "缓存", n: 3, contentType: "image/png") == "cover-untitled-3.png")
+    #expect(CoverOptions.fileName(slug: "", n: 1, contentType: "image/gif") == "cover-untitled-1.img")
+  }
+
+  @Test func settingsWithAndWithoutCoverFields() throws {
+    let old = try BlogClient.decoder.decode(SiteSettings.self, from: Data(#"{"translationModel":"a","tagTranslationModel":"b"}"#.utf8))
+    #expect(old.coverStyle == nil)
+    let current = try BlogClient.decoder.decode(
+      SiteSettings.self,
+      from: Data(#"{"translationModel":"a","tagTranslationModel":"b","coverPromptModel":"c","coverImageModel":"d","coverImageQuality":"low","coverStyle":"s"}"#.utf8))
+    #expect(current.coverImageQuality == "low")
+    let changed = current.applying(["coverImageQuality": "high", "coverStyle": "t", "future": "x"])
+    #expect(changed.coverImageQuality == "high")
+    #expect(changed.coverStyle == "t")
+    #expect(changed.translationModel == "a")
+  }
+}

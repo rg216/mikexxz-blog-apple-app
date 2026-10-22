@@ -31,7 +31,7 @@
 - 评论只读：网站的 GitHub 登录是 OAuth 回跳 + `__Host-` cookie。App 里要用 ASWebAuthenticationSession + 不靠 cookie 的凭证，API 也要改；目前引导去网页评论
 
 ## 后台（"后台"标签页）
-- 不登录也能进：里面的"设置"放着读者的文章语言（各列表工具栏里原来的地球菜单移到了这里；macOS 照平台惯例另有 ⌘, 的设置窗口）。登录后：文章、译文（含大模型生成）、标签、评论审核、媒体库、系统状态、Passkey、翻译模型
+- 不登录也能进：里面的"设置"放着读者的文章语言（各列表工具栏里原来的地球菜单移到了这里；macOS 照平台惯例另有 ⌘, 的设置窗口）。登录后：文章、译文（含大模型生成）、头图生成、标签、评论审核、媒体库、系统状态、Passkey、翻译模型和头图设置
 - 登录：RFC 8252 的浏览器授权（网站 CLAUDE.md "安全"一节）。`AppAuthRequest` 生成 PKCE verifier / state，`ASWebAuthenticationSession`（`.shared`，和 Safari 共用登录状态）打开网站的 `/admin/authorize-app`，管理员在网页上用 Passkey 登录、点"允许"，回跳 `mikexxz-blog://auth/callback?code&state`，`AdminClient.exchange` 换 token。不在 App 里直接用 Passkey：那要 Associated Domains（网站放 apple-app-site-association、App 签名带团队）
 - 顶层导航：iPhone / iPad 用 TabView；Mac 用 NavigationSplitView（侧边栏 + 详情，换栏目就换一个新的导航栈），不用 TabView。Mac 的 TabView 侧边栏里各标签页共用一个导航栏，每页一个 NavigationStack 会打架：切回来显示第一页而路径还在、之后点链接没反应；路径类型不同（[Route] / [AdminRoute]）时 SwiftUI 内部 try! 崩溃（`AnyNavigationPath.Error.comparisonTypeMismatch`）。2026-10 实测，见 `RootView` 的说明和 `AdminUITests` 里两个切换栏目的测试
 - 各栏目的导航路径都放在 `RootView`，一律用 `NavigationPath`；只接受当前栏目对路径的修改（被换下去的导航栈销毁前会把路径清空）
@@ -40,6 +40,7 @@
 - token 存钥匙串（`TokenStore`：数据保护钥匙串、ThisDeviceOnly；没正式签名的 Mac 构建退回文件钥匙串）。请求带 `Authorization: Bearer`；`AdminClient` 用单独的 URLSession，不存不发 cookie（API 对"只带 Bearer、不带 cookie"的请求才免 Origin 检查）、不用 URLCache。任何接口 401 → `AdminSession.handle` 清掉 token 回到登录
 - 后台界面固定中文，和网页后台一样：API 的报错、状态说明都是写给管理员的中文，直接显示（`AdminAPIError.message`、字段错误 `issues`）。后台的文字用 `zh()`（`Text(verbatim:)`），不进字符串表
 - 大模型翻译（`TranslationGeneration`）：段数从 `GET /admin/posts/:id/translation-plan` 拿，App 不自己切分（swift-markdown 和网站的 remark 块边界可能不同，段号会悄悄错位）。其余规则同网页：一次一个请求、开始时定下模型、失败从断点继续、只有 end_turn 算成功、未经修改才记为机器译文
+- 生成头图（`CoverGeneration` + `CoverGeneratorView`，文章编辑页"头图"里的"生成头图…"）：和网页一样两步——Claude 写画面描述（`POST /admin/covers/brief`，可改、可自己写），OpenAI 出图（`POST /admin/covers/generate`，NDJSON 流：partial 预览、ping、done 里是 base64 图片，一行可达 2MB）。可以连出几张，选中的那张才走下面的上传流程进媒体库（WebP 会转成 JPEG），图片描述写进媒体库，再设为头图（仍要保存文章）。状态放在编辑页持有的 `CoverGeneration` 里：关掉 sheet 再打开，生成的图还在；离开编辑页时中止请求（推入译文页也算离开）。模型、画质、头图风格在"设置"里，App 只读 `GET /admin/covers/config`
 - 图片上传（`ImagePreparation`，BlogKit 里，有测试）：设备上缩放到长边 ≤ 2560、重新编码去掉 EXIF / GPS、生成 640 / 1280 / 1920 版本；HEIC、WebP 转 JPEG（API 不收 HEIC，ImageIO 写不了 WebP），有透明的用 PNG，GIF / AVIF 原样。然后预签名 PUT 直传对象存储，再确认
 - macOS 沙盒：`ENABLE_USER_SELECTED_FILES = readonly`（"从文件上传"）
 
@@ -61,4 +62,5 @@
 - 网站仓库 `docker compose up -d`、`bun run db:migrate`、`bun run dev`（API :8787、网站 :3000）
 - 在本地开发库里给管理员建一个 session，拿到 token（库里只存 SHA-256(token)，和 `apps/api/src/auth/sessions.ts` 的 createSession 一样）
 - `TEST_RUNNER_BLOG_ADMIN_TOKEN=<token> xcodebuild … -only-testing:BlogUITests/AdminUITests test`：`TEST_RUNNER_` 前缀的环境变量会传给测试进程，测试再经 `launchEnvironment` 交给 App；App 只在 Debug 构建里读 `BLOG_ADMIN_TOKEN`（`AppConfiguration.injectedAdminToken`），跳过网页登录
+- 生成头图不要连真的 Claude / OpenAI：网站仓库里临时写一个入口，用 `createApp({ coverBriefWriter, coverImager })` 注入假实现（几秒后给一张本地图片），代替 `bun run dev` 的 API 跑在 :8787，`AdminUITests.testGenerateCover` 就能走完整个流程（2026-10 就是这样测的）
 - 手动试网页登录：scheme 里打开 `BLOG_API_URL=http://localhost:8787`，再加 `BLOG_SITE_URL=http://localhost:3000`
