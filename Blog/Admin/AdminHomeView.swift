@@ -87,6 +87,11 @@ private struct AdminHomeList: View {
     }
   }
 
+  private var pendingBadge: Text? {
+    guard let pendingComments, pendingComments > 0 else { return nil }
+    return zh("\(pendingComments) 条待审核").foregroundStyle(.orange)
+  }
+
   @ViewBuilder private var signedInSections: some View {
     Section {
       NavigationLink(value: AdminRoute.posts) {
@@ -97,16 +102,11 @@ private struct AdminHomeList: View {
         Label { zh("标签") } icon: { Image(systemName: "tag") }
       }
       .rowFont()
+      // 待审核数用 badge，不用 LabeledContent：macOS 上包进 LabeledContent 的 Label 不再按列表行排版，图标大小和其他行不一样
       NavigationLink(value: AdminRoute.comments) {
-        LabeledContent {
-          if let pendingComments, pendingComments > 0 {
-            zh("\(pendingComments) 条待审核")
-              .foregroundStyle(.orange)
-          }
-        } label: {
-          Label { zh("评论") } icon: { Image(systemName: "bubble.left.and.bubble.right") }
-        }
+        Label { zh("评论") } icon: { Image(systemName: "bubble.left.and.bubble.right") }
       }
+      .badge(pendingBadge)
       .rowFont()
       NavigationLink(value: AdminRoute.media) {
         Label { zh("媒体库") } icon: { Image(systemName: "photo.on.rectangle") }
